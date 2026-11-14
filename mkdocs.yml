@@ -1,0 +1,89 @@
+site_name: MetallurgyPy
+site_description: "Engineering Metallurgy with Python: scientific library and desktop studio for metallurgical calculations."
+site_url: https://mudiambat13.github.io/MetallurgyPy/
+repo_url: https://github.com/Mudiambat13/MetallurgyPy
+repo_name: Mudiambat13/MetallurgyPy
+copyright: Copyright &copy; MetallurgyPy contributors, MIT License
+
+exclude_docs: |
+  requirements.txt
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: installation.md
+      - Quick start: getting_started.md
+      - Tutorials:
+          - tutorials/index.md
+          - Your first mass balance: tutorials/first_mass_balance.md
+  - Concepts:
+      - Architecture: architecture.md
+      - Numerical precision and uncertainty: scientific_methods/precision.md
+      - Roadmap: roadmap.md
+  - Scientific methods:
+      - scientific_methods/index.md
+      - Mass balance: scientific_methods/mass_balance.md
+      - Reagents: scientific_methods/reagents.md
+      - Electrowinning: scientific_methods/electrowinning.md
+      - Other modules: scientific_methods/other_modules.md
+  - Studio (GUI):
+      - gui/index.md
+  - API reference:
+      - api/index.md
+  - Project:
+      - Contributing: contributing.md
+      - FAQ: faq.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
