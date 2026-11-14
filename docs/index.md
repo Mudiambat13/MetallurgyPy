@@ -4,8 +4,8 @@
 
 MetallurgyPy is an open-source scientific library for metallurgical process calculations, paired with a desktop application for people who prefer forms and charts to scripts.
 
-!!! warning "Project status: specification stage"
-    The design is complete, but the code is being written phase by phase (see the [roadmap](roadmap.md)). Pages in this site describe the **intended** behaviour, and each module page shows its current status. API examples are indicative until a module is released.
+!!! warning "Project status: early development (0.1.0.dev0)"
+    The Core foundation, **Mass Balance** and a first **Studio** are implemented and tested. Every other module is planned: its page describes the intended design and says so. Nothing is published on PyPI yet.
 
 ## Two products, one engine
 

@@ -1,7 +1,7 @@
 # Installation
 
 !!! note
-    MetallurgyPy has not been published to PyPI. Until the owner approves a release, install from a clone of the repository (development install below).
+    MetallurgyPy has not been published to PyPI. Until the owner approves a release, install from a clone of the repository (development install below). The `pip install metallurgypy` commands in this page describe the target installation.
 
 ## Requirements
 

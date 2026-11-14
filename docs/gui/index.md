@@ -3,7 +3,7 @@
 Studio is the desktop application built on the Core. It targets Windows and Linux, with macOS compatibility kept possible.
 
 !!! info "Status"
-    The first Studio MVP (Mass Balance workspace) is planned for Phase 4. This page describes the intended design.
+    Implemented in this version: main window, side navigation, dashboard, module explorer, the **Calculation Workspace** (Mass Balance), interactive chart, save/reopen, CSV/JSON export, PNG/SVG chart export, light/dark theme and settings. Not yet implemented: Results Explorer comparison, Data Import, Project Manager, Report Builder, PDF/HTML reports. Those sections below describe the target design.
 
 ```bash
 pip install "metallurgypy[gui]"

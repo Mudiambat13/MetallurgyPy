@@ -1,21 +1,29 @@
 # API reference
 
-!!! info "Not generated yet"
-    There is no importable code yet, so there is nothing to document automatically. Once Phase 1 lands, this section will be generated from docstrings with `mkdocstrings` (added to `docs/requirements.txt` at that point).
+!!! info "Hand-written for now"
+    Code exists, but this page is not generated from docstrings yet. Adding `mkdocstrings` is a planned improvement.
 
-## Planned public namespaces
+## Implemented today
+
+| Import | Content |
+|---|---|
+| `metallurgypy.core` | `Quantity`, `Tolerances`, `CalculationMode`, `Provenance`, result base classes, exceptions |
+| `metallurgypy.mass_balance` | `MassBalance`, `TwoProductBalance` and their result classes |
+| `metallurgypy.records` | `save_record`, `load_record`, `verify`, `recompute`, `export_result_csv`, `export_result_json` |
+| `metallurgypy.registry` | `list_models`, `get_model`, `ModelSpec`, `ParameterSpec` |
+| `metallurgypy.visualization` | `build_figure`, `save_chart` (needs the `visualization` extra) |
+
+## Planned
 
 | Namespace | Content |
 |---|---|
-| `metallurgypy.core` | units, constants, exceptions, validation, results, provenance |
-| `metallurgypy.precision` | numerical modes, uncertainty, `Measurement`, tolerances, significant figures, sensitivity |
-| `metallurgypy.mass_balance` | `MassBalance` |
+| `metallurgypy.precision` | `Measurement`, uncertainty propagation, significant figures, sensitivity |
 | `metallurgypy.reagents` | dosing, dilution, consumption |
 | `metallurgypy.hydrometallurgy` | leaching, precipitation, neutralization, dissolution |
 | `metallurgypy.solvent_extraction` | stages, circuits, McCabe-Thiele |
 | `metallurgypy.electrowinning` | electrolysis, current efficiency, production, energy |
-| `metallurgypy.flotation`, `filtration`, `thermodynamics`, `statistics`, `visualization` | as described in [Other modules](../scientific_methods/other_modules.md) |
+| `metallurgypy.flotation`, `filtration`, `thermodynamics`, `statistics` | as described in [Other modules](../scientific_methods/other_modules.md) |
 
-## Planned exceptions
+## Exceptions
 
-`MetallurgyPyError`, `InvalidParameterError`, `UnitConversionError`, `DimensionError`, `CalculationError`, `ConvergenceError`, `ModelDomainError`.
+`MetallurgyPyError` is the base class. Subclasses: `InvalidParameterError` (also a `ValueError`), `UnitConversionError`, `DimensionError`, `CalculationError`, `ConvergenceError` (a `CalculationError`), `ModelDomainError`, `RecordFormatError`.

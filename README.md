@@ -4,7 +4,7 @@
 
 Open-source scientific library for metallurgical process calculations (**MetallurgyPy Core**) and a desktop application for visualization and reporting (**MetallurgyPy Studio**).
 
-> **Status: specification stage.** The design and documentation are in place; the code is being developed phase by phase. Nothing is published on PyPI.
+> **Status: early development (0.1.0.dev0).** Core foundation, Mass Balance and a first Studio are implemented. Other modules are planned. Nothing is published on PyPI.
 
 📖 **Documentation:** https://mudiambat13.github.io/MetallurgyPy/
 
@@ -14,20 +14,40 @@ Mass balance, hydrometallurgy, solvent extraction, electrowinning, flotation, fi
 
 MetallurgyPy is not a validated industrial simulator and does not replace DCS/PLC/SCADA systems.
 
-## Planned installation
+## Install (from a clone, until a release is approved)
 
 ```bash
-pip install metallurgypy              # Core, no GUI dependency
-pip install "metallurgypy[gui]"       # Core + Studio
+pip install -e .                # Core, no GUI dependency
+pip install -e ".[gui]"         # Core + Studio
+metallurgypy-studio             # launch Studio
+```
+
+```python
+from metallurgypy.core import Quantity
+from metallurgypy.mass_balance import MassBalance
+
+result = MassBalance(Quantity(1000, "t"), Quantity(2.5, "%"), Quantity(92, "%")).calculate()
+print(result.metal_recovered)   # 23.0 t
 ```
 
 ## Repository contents
 
 | Path | Content |
 |---|---|
+| `src/metallurgypy/` | Core library |
+| `studio/metallurgypy_studio/` | Desktop application |
+| `tests/` | Core, Studio logic and GUI tests |
+| `examples/` | Runnable examples |
 | `specs/` | Technical specification (French) |
 | `docs/`, `mkdocs.yml` | Documentation site (MkDocs Material) |
 | `.github/workflows/docs.yml` | Build and deploy to GitHub Pages |
+
+## Run the tests
+
+```bash
+pip install -e ".[dev]"
+pytest                          # GUI tests are skipped if PySide6 is absent
+```
 
 ## Build the docs locally
 

@@ -15,11 +15,11 @@ If a page has no source for a value, MetallurgyPy does not ship that value: dosa
 
 | Module | Status | Page |
 |---|---|---|
-| Mass balance | Specified, first to be implemented (Phase 2) | [Mass balance](mass_balance.md) |
+| Mass balance | **Implemented** (two models, tested) | [Mass balance](mass_balance.md) |
 | Reagents | Specified (Phase 2) | [Reagents](reagents.md) |
 | Electrowinning | Specified (Phase 5) | [Electrowinning](electrowinning.md) |
 | Hydrometallurgy, solvent extraction, flotation, filtration, thermodynamics, statistics | Planned | [Other modules](other_modules.md) |
-| Precision and uncertainty | Specified (Phase 3) | [Numerical precision and uncertainty](precision.md) |
+| Precision and uncertainty | Tolerances and traceability implemented; uncertainty propagation planned (Phase 3) | [Numerical precision and uncertainty](precision.md) |
 
 !!! warning "Models, not validated simulators"
     A simplified model is not an industrial simulation validated against plant data. Use results as engineering estimates and validate them against measurements.

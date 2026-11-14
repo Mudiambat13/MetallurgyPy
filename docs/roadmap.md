@@ -5,10 +5,10 @@ Work is delivered by phase. The repository stays in a working state after each o
 | Phase | Scope | Deliverable |
 |---|---|---|
 | 0. Design | Confirm APIs, versions, unit conventions, first scientific specifications | Approved architecture, initial repository |
-| 1. Core foundation | Packaging, units, validation, exceptions, results, provenance, tests | Installable minimal Core |
-| 2. First calculators | Mass Balance, Reagents, reference cases, examples, docs | Usable, tested calculations |
+| 1. Core foundation (**done**) | Packaging, units, validation, exceptions, results, provenance, tests | Installable minimal Core |
+| 2. First calculators | Mass Balance (**done**), Reagents (planned), reference cases, examples, docs | Usable, tested calculations |
 | 3. Precision and uncertainty | `Measurement`, propagation, tolerances, sensitivity analysis | Calculations with documented uncertainty |
-| 4. Studio MVP | Main window, side navigation, dashboard, Mass Balance workspace, results and charts, light/dark theme, save a calculation | Desktop app with Mass Balance |
+| 4. Studio MVP (**implemented, not yet run on a real display**) | Main window, side navigation, dashboard, Mass Balance workspace, results and charts, light/dark theme, save a calculation | Desktop app with Mass Balance |
 | 5. Metallurgical processes | Hydrometallurgy, solvent extraction, electrowinning, flotation, filtration, advanced reagents | Tested modules available in Studio |
 | 6. Visualization and reports | CSV/XLSX import, scenario comparison, advanced charts, PDF/HTML reports, project management | Complete scientific workspace |
 | 7. Stabilization, 1.0 | Scientific and software audit, cross-platform tests, security review, packaging | Release candidate; publication only after explicit approval |

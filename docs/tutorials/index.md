@@ -4,6 +4,6 @@ Tutorials use reproducible examples. Any dataset is clearly identified, and illu
 
 | Tutorial | Status |
 |---|---|
-| [Your first mass balance](first_mass_balance.md) | Draft, pending the Phase 2 API |
+| [Your first mass balance](first_mass_balance.md) | Available |
 
 More tutorials (reagent preparation, electrowinning production, uncertainty propagation, Studio walkthrough) will be added as the corresponding modules ship.

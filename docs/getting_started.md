@@ -1,51 +1,66 @@
 # Quick start
 
-!!! info "Indicative API"
-    The snippets below show the target API from the specification. Names and signatures are confirmed in Phase 0 and may change before the first release.
-
 ## A first calculation
 
 ```python
+from metallurgypy.core import Quantity
 from metallurgypy.mass_balance import MassBalance
 
-balance = MassBalance(
-    feed_mass=1000,    # basis and unit to be explicit in the final API
-    feed_grade=0.025,  # mass fraction (2.5 %)
-    recovery=0.92,     # fraction of contained metal recovered
-)
+result = MassBalance(
+    feed_mass=Quantity(1000, "t"),
+    feed_grade=Quantity(2.5, "%"),
+    recovery=Quantity(92, "%"),
+).calculate()
 
-result = balance.calculate()
-
-print(result.metal_recovered)
-print(result.metal_remaining)
-print(result.recovery)
+print(result.metal_recovered)   # 23.0 t
+print(result.metal_remaining)   # 2.0 t
 ```
 
-With these inputs the contained metal is \(1000 \times 0.025 = 25\) mass units, of which \(25 \times 0.92 = 23\) are recovered and \(2\) remain. The full derivation is on the [Mass balance](scientific_methods/mass_balance.md) page.
+Bare numbers also work and use documented default units (mass in tonnes, grades and recoveries as fractions between 0 and 1):
+
+```python
+MassBalance(feed_mass=1000, feed_grade=0.025, recovery=0.92).calculate()
+```
+
+This example is also provided as a script: `examples/mass_balance/basic_balance.py`. The inputs are illustrative, not plant data. The derivation is on the [Mass balance](scientific_methods/mass_balance.md) page.
 
 ## What a result carries
 
-A result is more than a number. Each important result exposes:
+```python
+result.provenance.model_version   # '1.0'
+result.provenance.equations       # the formulas used
+result.provenance.assumptions     # the assumptions, in plain language
+result.provenance.inputs          # inputs as used, with units
+result.warnings                   # tuple of warnings (may be empty)
+```
 
-- the inputs and their units
-- the formula or model used, and its version
-- the numerical method and tolerances
-- assumptions and warnings
-- uncertainties, when supplied
-- convergence status
-- the date and the MetallurgyPy version
+Each result exposes its inputs and units, the equations, assumptions, tolerances, calculation mode, the MetallurgyPy version and a UTC timestamp. Values are stored unrounded.
 
-Full, unrounded values are kept in the result. Rounding happens only when displaying.
+## Errors are explicit
+
+```python
+MassBalance(feed_mass=1000, feed_grade=0.025, recovery=1.2)
+# InvalidParameterError: recovery = 1.2 fraction is outside the valid range of 0 to 1 (0 % to 100 %).
+```
+
+All library errors derive from `MetallurgyPyError`. Passing a mass where a grade is expected raises `DimensionError`, and a split that the grades cannot determine raises `ModelDomainError`.
+
+## Save, reopen, export
+
+```python
+from metallurgypy.records import save_record, load_record, verify, export_result_csv
+
+save_record("balance.mpy.json", result, name="Demo", notes="illustrative data")
+record = load_record("balance.mpy.json")
+print(verify(record))            # [] means a fresh calculation reproduces the saved result
+export_result_csv("balance.csv", result)
+```
+
+Files are never overwritten unless you pass `overwrite=True`. A saved file is only data: reopening it looks the model up by name in a registry and never runs code from the file.
 
 ## Calculation modes
 
-| Mode | Behaviour |
-|---|---|
-| `standard` | Usual scientific calculation in `float64` |
-| `high_precision` | Reinforced precision where justified and available |
-| `uncertainty_aware` | Propagates measurement uncertainties |
-
-See [Numerical precision and uncertainty](scientific_methods/precision.md) for what each mode does and does not guarantee.
+Only `standard` (float64) is implemented. `high_precision` and `uncertainty_aware` are defined but refused with a clear error rather than silently ignored. See [Numerical precision and uncertainty](scientific_methods/precision.md).
 
 ## Using Studio
 

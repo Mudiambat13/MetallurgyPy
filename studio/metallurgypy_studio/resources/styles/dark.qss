@@ -1,0 +1,35 @@
+/* MetallurgyPy Studio: dark theme. Text/background pairs keep a contrast ratio above 4.5:1. */
+QWidget { background: #1c2229; color: #e3e8ee; font-size: 13px; }
+QMainWindow, QStackedWidget, QTabWidget::pane { background: #1c2229; }
+
+#Sidebar { background: #131a20; border: none; outline: 0; padding-top: 8px; }
+#Sidebar::item { color: #d5dce4; padding: 11px 18px; border-left: 3px solid transparent; }
+#Sidebar::item:hover { background: #1f2a33; }
+#Sidebar::item:selected { background: #26343f; border-left: 3px solid #f2a23a; color: #ffffff; }
+
+#TopBar { background: #232b33; border-bottom: 1px solid #38434e; }
+#AppTitle { background: transparent; font-size: 16px; font-weight: 600; }
+#StatusLabel { background: transparent; color: #b4bfca; }
+#Notice { background: #3a2f14; border: 1px solid #8a6a22; border-radius: 4px; padding: 8px; color: #f6dfa8; }
+#ErrorText { background: transparent; color: #ff9a9d; }
+#Hint { background: transparent; color: #b4bfca; }
+#Heading { background: transparent; font-size: 20px; font-weight: 600; }
+
+QPushButton { background: #2a343d; border: 1px solid #4a5865; border-radius: 4px; padding: 6px 14px; }
+QPushButton:hover { background: #34414c; }
+QPushButton:disabled { color: #7e8b98; background: #232b33; }
+QPushButton#Primary { background: #3b82c4; color: #08121c; border: 1px solid #3b82c4; font-weight: 600; }
+QPushButton#Primary:hover { background: #5198d6; }
+
+QLineEdit, QComboBox, QSpinBox, QPlainTextEdit, QTextEdit {
+    background: #232b33; border: 1px solid #4a5865; border-radius: 4px; padding: 4px 6px;
+}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QPlainTextEdit:focus { border: 1px solid #5198d6; }
+QLineEdit[invalid="true"] { border: 1px solid #ff9a9d; background: #3a2124; }
+
+QTableWidget, QListWidget, QTreeWidget { background: #232b33; border: 1px solid #38434e; gridline-color: #333e48; }
+QHeaderView::section { background: #2a343d; border: none; border-bottom: 1px solid #38434e; padding: 6px; font-weight: 600; }
+QTabBar::tab { background: #2a343d; padding: 7px 16px; border: 1px solid #38434e; border-bottom: none; }
+QTabBar::tab:selected { background: #232b33; font-weight: 600; }
+QGroupBox { border: 1px solid #38434e; border-radius: 4px; margin-top: 10px; padding-top: 8px; }
+QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
