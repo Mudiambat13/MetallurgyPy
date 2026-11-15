@@ -112,6 +112,6 @@ The metal balance is closed by construction, and the code cross-checks the two w
 ## Assumptions and limits
 
 - steady-state, single-time-point balance of one component
-- grades are taken as exact: analytical uncertainty is not propagated in `standard` mode (uncertainty propagation is planned for Phase 3)
+- grades are taken as exact: analytical uncertainty is not propagated in `standard` mode (use `propagate_model` to propagate uncertainty, see [Numerical precision and uncertainty](precision.md))
 - real sampling and assay errors can make a computed yield or recovery physically meaningless even when the arithmetic is valid
 - the balance is arithmetic: it says nothing about whether a recovery is achievable in a real circuit

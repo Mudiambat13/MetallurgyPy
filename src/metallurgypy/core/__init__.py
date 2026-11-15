@@ -12,7 +12,7 @@ from metallurgypy.core.exceptions import (
 )
 from metallurgypy.core.modes import CalculationMode
 from metallurgypy.core.provenance import Provenance
-from metallurgypy.core.results import CalculationResult, ChartData, OutputItem
+from metallurgypy.core.results import CalculationResult, ChartData, GenericResult, OutputItem
 from metallurgypy.core.units import Quantity
 from metallurgypy.core.validation import DEFAULT_TOLERANCES, Tolerances
 
@@ -23,6 +23,7 @@ __all__ = [
     "CalculationResult",
     "ChartData",
     "ConvergenceError",
+    "GenericResult",
     "DimensionError",
     "InvalidParameterError",
     "MetallurgyPyError",

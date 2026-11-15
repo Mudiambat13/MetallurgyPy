@@ -60,7 +60,7 @@ Files are never overwritten unless you pass `overwrite=True`. A saved file is on
 
 ## Calculation modes
 
-Only `standard` (float64) is implemented. `high_precision` and `uncertainty_aware` are defined but refused with a clear error rather than silently ignored. See [Numerical precision and uncertainty](scientific_methods/precision.md).
+`standard` (float64) works for every model. `high_precision` (exact rational arithmetic) is available for `MassBalance`; other models refuse it with a clear error. Uncertainty-aware results come from `propagate_model` (see the [uncertainty tutorial](tutorials/uncertainty.md)). See [Numerical precision and uncertainty](scientific_methods/precision.md).
 
 ## Using Studio
 

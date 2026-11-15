@@ -45,6 +45,7 @@ nav:
       - Tutorials:
           - tutorials/index.md
           - Your first mass balance: tutorials/first_mass_balance.md
+          - Uncertainty propagation: tutorials/uncertainty.md
   - Concepts:
       - Architecture: architecture.md
       - Numerical precision and uncertainty: scientific_methods/precision.md
@@ -54,12 +55,20 @@ nav:
       - Mass balance: scientific_methods/mass_balance.md
       - Reagents: scientific_methods/reagents.md
       - Electrowinning: scientific_methods/electrowinning.md
-      - Other modules: scientific_methods/other_modules.md
+      - Flotation: scientific_methods/flotation.md
+      - Filtration: scientific_methods/filtration.md
+      - Hydrometallurgy: scientific_methods/hydrometallurgy.md
+      - Solvent extraction: scientific_methods/solvent_extraction.md
+      - Thermodynamics: scientific_methods/thermodynamics.md
+      - Statistics: scientific_methods/statistics.md
   - Studio (GUI):
       - gui/index.md
+      - Data, projects, comparison, reports: guides/workflows.md
   - API reference:
       - api/index.md
   - Project:
+      - Scientific audit: project/scientific_audit.md
+      - Security: project/security.md
       - Contributing: contributing.md
       - FAQ: faq.md
 

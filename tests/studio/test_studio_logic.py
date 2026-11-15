@@ -128,7 +128,11 @@ def test_module_overview_covers_all_nine_modules_and_marks_availability(service)
     overview = service.module_overview()
     assert len(overview) == 9
     available = {o.info.key for o in overview if o.available}
-    assert available == {"mass_balance"}
+    assert available == {
+        "mass_balance", "reagents", "electrowinning", "flotation", "filtration",
+        "hydrometallurgy", "solvent_extraction", "thermodynamics",
+    }
+    assert {o.info.key for o in overview if not o.available} == {"statistics"}
 
 
 # ----------------------------- view model ---------------------------------- #
@@ -177,9 +181,9 @@ def test_switching_model_resets_form_and_result(vm):
 
 def test_async_path_equals_sync_path(vm, service):
     vm.fill_example()
-    model_id, fields = vm.prepare_run()
+    model_id, fields, correlations = vm.prepare_run()
     assert vm.status == "running"
-    vm.apply_outcome(service.run(model_id, fields))
+    vm.apply_outcome(service.run(model_id, fields, correlations))
     assert vm.status == OK
 
 
@@ -292,3 +296,93 @@ def test_studio_logic_layers_import_without_qt():
         "assert 'PySide6' not in sys.modules"
     )
     assert proc.returncode == 0, proc.stderr
+
+
+# --------------------------- uncertainty in Studio -------------------------- #
+
+_UNC_FIELDS = {
+    "feed_mass": FieldInput("1000", "t", "5"),
+    "feed_grade": FieldInput("2.5", "%", "0.05"),
+    "recovery": FieldInput("92", "%"),
+}
+
+
+def test_run_with_uncertainty_propagates_and_keeps_nominal(service):
+    plain = service.run("mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()})
+    outcome = service.run("mass_balance.recovery", _UNC_FIELDS)
+    assert outcome.ok and outcome.uncertain is not None
+    assert outcome.result.metal_recovered.value == pytest.approx(plain.result.metal_recovered.value, rel=1e-14)
+    u = outcome.uncertain.outputs["metal_recovered"].standard_uncertainty
+    # metal = m * g * R: relative variances add (first-order)
+    expected_rel = ((5 / 1000) ** 2 + (0.05 / 2.5) ** 2) ** 0.5
+    assert u / outcome.result.metal_recovered.value == pytest.approx(expected_rel, rel=1e-4)
+
+
+def test_negative_or_bad_uncertainty_is_a_field_error(service):
+    for bad in ("-1", "abc"):
+        fields = dict(_UNC_FIELDS)
+        fields["feed_mass"] = FieldInput("1000", "t", bad)
+        outcome = service.run("mass_balance.recovery", fields)
+        assert not outcome.ok and "feed_mass" in outcome.field_errors
+
+
+def test_viewmodel_shows_uncertainty_column_and_budget(vm):
+    vm.select_model("mass_balance.recovery")
+    for name, f in _UNC_FIELDS.items():
+        vm.set_field(name, text=f.text, unit=f.unit, uncertainty=f.uncertainty)
+    vm.calculate()
+    assert vm.status == OK
+    assert any(r.uncertainty_text not in ("", "0") for r in vm.rows())
+    budget = vm.uncertainty_budget_text()
+    assert "of the variance" in budget and "feed_mass" in budget
+    assert "Uncertainty budget" in vm.details_text()
+
+
+def test_viewmodel_without_uncertainty_has_empty_column(vm):
+    vm.select_model("mass_balance.recovery")
+    vm.fill_example()
+    vm.calculate()
+    assert all(r.uncertainty_text == "" for r in vm.rows())
+    assert vm.uncertainty_budget_text() == ""
+
+
+def test_uncertainty_survives_save_and_reopen(service, tmp_path):
+    outcome = service.run("mass_balance.recovery", _UNC_FIELDS)
+    path = service.save(tmp_path / "unc.mpy.json", outcome.result, uncertain=outcome.uncertain)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["uncertainty"]["inputs"]["feed_mass"]["uncertainty"] == 5.0
+    opened = service.open(path)
+    assert opened.differences == ()
+    again = opened.outcome.uncertain
+    assert again is not None
+    assert again.outputs["metal_recovered"].standard_uncertainty == pytest.approx(
+        outcome.uncertain.outputs["metal_recovered"].standard_uncertainty, rel=1e-12
+    )
+
+
+def test_reopening_in_viewmodel_restores_uncertainty_fields(vm, service, tmp_path):
+    outcome = service.run("mass_balance.recovery", _UNC_FIELDS)
+    path = service.save(tmp_path / "u.mpy.json", outcome.result, uncertain=outcome.uncertain)
+    vm.open_file(path)
+    assert vm.fields["feed_mass"].uncertainty not in ("", "0.0")
+    assert vm.uncertain is not None
+
+
+def test_record_without_uncertainty_still_loads(service, tmp_path):
+    outcome = service.run("mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()})
+    path = service.save(tmp_path / "plain.mpy.json", outcome.result)
+    opened = service.open(path)
+    assert opened.record.uncertainty is None and opened.outcome.uncertain is None
+
+
+def test_malformed_uncertainty_block_is_rejected(service, tmp_path):
+    from metallurgypy.core import RecordFormatError
+    from metallurgypy.records import load_record
+
+    outcome = service.run("mass_balance.recovery", _UNC_FIELDS)
+    path = service.save(tmp_path / "bad.mpy.json", outcome.result, uncertain=outcome.uncertain)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["uncertainty"] = "oops"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(RecordFormatError):
+        load_record(path)

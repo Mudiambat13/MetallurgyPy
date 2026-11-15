@@ -29,10 +29,12 @@ def result():
 
 def test_registry_lists_models_and_modules():
     ids = {m.model_id for m in list_models()}
-    assert ids == {"mass_balance.recovery", "mass_balance.two_product"}
+    assert {"mass_balance.recovery", "mass_balance.two_product"} <= ids
+    assert len(ids) == len(list_models()) == 21
     assert len(MODULE_CATALOG) == 9
     assert {m.module_key for m in list_models()} <= {m.key for m in MODULE_CATALOG}
-    assert len(list_models("mass_balance")) == 2 and list_models("flotation") == ()
+    assert len(list_models("mass_balance")) == 2 and len(list_models("flotation")) == 2
+    assert list_models("statistics") == ()  # Python API only: its inputs are series, not scalars
     with pytest.raises(InvalidParameterError, match="Unknown model"):
         get_model("os.system")
 

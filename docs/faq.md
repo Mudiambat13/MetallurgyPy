@@ -18,6 +18,12 @@ The engine keeps full precision and only rounds for display. More digits do not 
 **Where do reagent dosages and equilibrium data come from?**
 From you, or from an explicitly documented source. MetallurgyPy does not invent them.
 
+**Can it propagate measurement uncertainty?**
+Yes: GUM first-order propagation and a Monte Carlo cross-check, in Python and in Studio. It covers the effect of input uncertainty through the model, not model error. See [Numerical precision and uncertainty](scientific_methods/precision.md).
+
+**Can I import my data?**
+Yes: CSV, JSON and Excel, with explicit units and a report of rejected rows. See [Data, comparison, reports and projects](guides/workflows.md).
+
 **Which languages are supported?**
 Code and API are English. Documentation starts in English, with French translation possible later.
 

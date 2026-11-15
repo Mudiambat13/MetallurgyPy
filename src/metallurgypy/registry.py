@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from metallurgypy.core.exceptions import InvalidParameterError
 from metallurgypy.core.results import CalculationResult
@@ -27,6 +27,21 @@ class ParameterSpec:
     description: str
     units: tuple[str, ...]
     default_unit: str
+
+
+def param(
+    name: str,
+    label: str,
+    description: str,
+    default_unit: str,
+    allowed: tuple[str, ...] | None = None,
+) -> ParameterSpec:
+    """Build a :class:`ParameterSpec`; allowed units default to the whole dimension."""
+    from metallurgypy.core.units import dimension_of, units_of
+
+    return ParameterSpec(
+        name, label, description, allowed or units_of(dimension_of(default_unit)), default_unit
+    )
 
 
 @dataclass(frozen=True)
@@ -52,6 +67,37 @@ class ModelSpec:
         return self.factory(inputs).calculate()
 
 
+def register_class(
+    cls: type[Any],
+    *,
+    module_key: str,
+    title: str,
+    description: str,
+    parameters: tuple[ParameterSpec, ...],
+    example: Mapping[str, Quantity],
+    doc_page: str,
+) -> None:
+    """Register a model class whose constructor takes the parameters as keyword arguments."""
+
+    def factory(values: Mapping[str, Quantity]) -> Calculation:
+        instance: Calculation = cls(**values)
+        return instance
+
+    register(
+        ModelSpec(
+            model_id=cls.MODEL_ID,
+            module_key=module_key,
+            title=title,
+            description=description,
+            model_version=cls.MODEL_VERSION,
+            parameters=parameters,
+            factory=factory,
+            example=example,
+            doc_page=doc_page,
+        )
+    )
+
+
 @dataclass(frozen=True)
 class ModuleInfo:
     key: str
@@ -72,6 +118,16 @@ MODULE_CATALOG: tuple[ModuleInfo, ...] = (
     ModuleInfo("statistics", "Statistics", "Descriptive statistics, regression, sensitivity.", "scientific_methods/other_modules/#statistics"),
 )
 
+_SPEC_MODULES = (
+    "metallurgypy.mass_balance.spec",
+    "metallurgypy.reagents.spec",
+    "metallurgypy.electrowinning.spec",
+    "metallurgypy.flotation.spec",
+    "metallurgypy.filtration.spec",
+    "metallurgypy.hydrometallurgy.spec",
+    "metallurgypy.solvent_extraction.spec",
+    "metallurgypy.thermodynamics.spec",
+)
 _MODELS: dict[str, ModelSpec] = {}
 _builtins_loaded = False
 
@@ -86,7 +142,10 @@ def _load_builtins() -> None:
     global _builtins_loaded
     if not _builtins_loaded:
         _builtins_loaded = True
-        import metallurgypy.mass_balance.spec  # noqa: F401  (registers its models)
+        import importlib
+
+        for module in _SPEC_MODULES:
+            importlib.import_module(module)  # each one registers its models
 
 
 def list_models(module_key: str | None = None) -> tuple[ModelSpec, ...]:

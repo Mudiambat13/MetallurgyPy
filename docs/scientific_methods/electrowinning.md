@@ -1,6 +1,6 @@
 # Electrowinning
 
-**Package:** `metallurgypy.electrowinning` · **Status:** specified, implementation in Phase 5
+**Package:** `metallurgypy.electrowinning` · **Status:** implemented (`electrowinning.faraday`)
 
 ## Scope
 

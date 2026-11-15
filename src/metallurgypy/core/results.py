@@ -25,13 +25,21 @@ class OutputItem:
 
 @dataclass(frozen=True)
 class ChartData:
-    """The data behind a result chart, so every interface plots exactly the result."""
+    """The data behind a result chart, so every interface plots exactly the result.
+
+    ``kind="bar"`` plots ``values`` against ``categories``. ``kind="line"`` plots
+    ``values`` against the numeric ``x``.
+    """
 
     title: str
     categories: tuple[str, ...]
     values: tuple[float, ...]
     unit: str
     source: str
+    kind: Literal["bar", "line"] = "bar"
+    x: tuple[float, ...] = ()
+    x_label: str = ""
+    y_label: str = ""
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -70,3 +78,17 @@ class CalculationResult(ABC):
             "warnings": list(self.warnings),
             "provenance": self.provenance.to_dict(),
         }
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenericResult(CalculationResult):
+    """Result made of a flat list of outputs (used by most models)."""
+
+    items: tuple[OutputItem, ...]
+    chart: ChartData | None = None
+
+    def outputs(self) -> tuple[OutputItem, ...]:
+        return self.items
+
+    def chart_data(self) -> ChartData | None:
+        return self.chart

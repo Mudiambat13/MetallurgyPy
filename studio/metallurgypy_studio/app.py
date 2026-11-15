@@ -19,6 +19,10 @@ from PySide6.QtWidgets import (
 
 from metallurgypy_studio import APP_NAME, DOCS_URL, __version__
 from metallurgypy_studio.services.calculation_service import CalculationService
+from metallurgypy_studio.services.workflow_service import DataService, ProjectService
+from metallurgypy_studio.viewmodels.workflow_viewmodels import ImportViewModel, ProjectViewModel
+from metallurgypy_studio.views.workflow.import_view import ImportView
+from metallurgypy_studio.views.workflow.project_view import ProjectView
 from metallurgypy_studio.viewmodels.app_state import AppSettings, AppState
 from metallurgypy_studio.viewmodels.workspace_viewmodel import WorkspaceViewModel
 from metallurgypy_studio.views.dashboard.dashboard_view import DashboardView
@@ -27,7 +31,7 @@ from metallurgypy_studio.views.settings.settings_view import SettingsView
 from metallurgypy_studio.views.workspace.workspace_view import WorkspaceView
 
 STYLES = Path(__file__).parent / "resources" / "styles"
-PAGES = ("Dashboard", "Modules", "Mass Balance", "Settings")
+PAGES = ("Dashboard", "Modules", "Calculation", "Data Import", "Projects", "Settings")
 
 
 def settings_path() -> Path:
@@ -50,6 +54,8 @@ class MainWindow(QMainWindow):
         self.state = AppState(settings=settings)
         self.service = CalculationService()
         self.vm = WorkspaceViewModel(self.service, self.state)
+        self.import_vm = ImportViewModel(DataService(), [m.model_id for m in self.service.models()])
+        self.project_vm = ProjectViewModel(ProjectService(self.service), self.vm)
         self.setWindowTitle(f"{APP_NAME} {__version__}")
         self.resize(1200, 760)
 
@@ -73,9 +79,13 @@ class MainWindow(QMainWindow):
         self.dashboard = DashboardView(self.state)
         self.modules = ModulesView(self.service.module_overview())
         self.workspace = WorkspaceView(self.vm, self.service)
+        self.import_view = ImportView(self.import_vm)
+        self.project_view = ProjectView(self.project_vm)
         self.settings_view = SettingsView(settings)
         self.stack = QStackedWidget()
-        for page in (self.dashboard, self.modules, self.workspace, self.settings_view):
+        for page in (
+            self.dashboard, self.modules, self.workspace, self.import_view, self.project_view, self.settings_view
+        ):
             self.stack.addWidget(page)
 
         body = QHBoxLayout()
@@ -94,6 +104,7 @@ class MainWindow(QMainWindow):
         self.nav.currentRowChanged.connect(self._on_nav)
         self.workspace.status_changed.connect(self.status.setText)
         self.vm.subscribe(self.dashboard.refresh)
+        self.project_view.open_workspace.connect(lambda: self.nav.setCurrentRow(2))
         self.dashboard.open_workspace.connect(lambda: self.nav.setCurrentRow(2))
         self.modules.open_workspace.connect(lambda: self.nav.setCurrentRow(2))
         self.dashboard.open_docs.connect(lambda: QDesktopServices.openUrl(QUrl(DOCS_URL)))

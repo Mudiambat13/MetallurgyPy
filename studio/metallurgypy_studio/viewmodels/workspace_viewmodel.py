@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from metallurgypy.core import CalculationResult
+from metallurgypy.precision import UncertainResult, format_with_uncertainty
 from metallurgypy.registry import ModelSpec
 from metallurgypy_studio.services.calculation_service import (
     CalculationService,
@@ -32,6 +33,7 @@ class ResultRow:
     value_text: str
     unit: str
     kind: str
+    uncertainty_text: str = ""  # propagated standard uncertainty, "" when the inputs were exact
 
 
 class WorkspaceViewModel:
@@ -49,6 +51,8 @@ class WorkspaceViewModel:
         self.name = ""
         self.differences: tuple[str, ...] = ()
         self.last_saved: Path | None = None
+        self.uncertain: UncertainResult | None = None
+        self.correlations: dict[tuple[str, str], float] = {}
         self._reset_fields()
 
     # ---- observation ----
@@ -83,11 +87,21 @@ class WorkspaceViewModel:
         self.error = None
         self.differences = ()
         self.last_saved = None
+        self.uncertain = None
 
-    def set_field(self, name: str, *, text: str | None = None, unit: str | None = None) -> None:
+    def set_field(
+        self,
+        name: str,
+        *,
+        text: str | None = None,
+        unit: str | None = None,
+        uncertainty: str | None = None,
+    ) -> None:
         current = self.fields[name]
         self.fields[name] = FieldInput(
-            current.text if text is None else text, current.unit if unit is None else unit
+            current.text if text is None else text,
+            current.unit if unit is None else unit,
+            current.uncertainty if uncertainty is None else uncertainty,
         )
 
     def fill_example(self) -> None:
@@ -95,23 +109,27 @@ class WorkspaceViewModel:
         self.fields = {
             name: FieldInput(repr(q.value), q.unit) for name, q in self.spec.example.items()
         }
+        self.correlations = {}
         self._clear_result()
         self.notify()
 
     # ---- running ----
 
-    def prepare_run(self) -> tuple[str, dict[str, FieldInput]]:
+    def prepare_run(
+        self,
+    ) -> tuple[str, dict[str, FieldInput], dict[tuple[str, str], float]]:
         self.status = RUNNING
         self.field_errors = {}
         self.error = None
         self.notify()
-        return self.spec.model_id, dict(self.fields)
+        return self.spec.model_id, dict(self.fields), dict(self.correlations)
 
     def apply_outcome(self, outcome: RunOutcome) -> None:
         self.field_errors = dict(outcome.field_errors)
         self.error = outcome.error
         self.differences = ()
         self.last_saved = None
+        self.uncertain = outcome.uncertain
         if outcome.result is not None:
             self.result = outcome.result
             self.status = OK
@@ -122,8 +140,8 @@ class WorkspaceViewModel:
         self.notify()
 
     def calculate(self) -> None:
-        model_id, fields = self.prepare_run()
-        self.apply_outcome(self._service.run(model_id, fields))
+        model_id, fields, correlations = self.prepare_run()
+        self.apply_outcome(self._service.run(model_id, fields, correlations))
 
     # ---- what the view shows ----
 
@@ -132,10 +150,33 @@ class WorkspaceViewModel:
         if self.result is None:
             return []
         digits = self._state.settings.display_digits
-        return [
-            ResultRow(o.name, o.label, format_number(o.quantity.value, digits), o.quantity.unit, o.kind)
-            for o in self.result.outputs()
-        ]
+        rows = []
+        for o in self.result.outputs():
+            u_text = ""
+            if self.uncertain is not None and o.name in self.uncertain.outputs:
+                u = self.uncertain.outputs[o.name].standard_uncertainty
+                u_text = format_number(u, min(digits, 3)) if u > 0.0 else "0"
+            rows.append(
+                ResultRow(o.name, o.label, format_number(o.quantity.value, digits), o.quantity.unit, o.kind, u_text)
+            )
+        return rows
+
+    def uncertainty_budget_text(self) -> str:
+        """Plain-text uncertainty budget: method, warnings, and each input's share of the variance."""
+        if self.uncertain is None:
+            return ""
+        lines = [f"Method: {self.uncertain.method}", "Standard uncertainties u(y) (coverage factor k = 1):"]
+        for name, o in self.uncertain.outputs.items():
+            if o.standard_uncertainty == 0.0:
+                continue
+            shown = format_with_uncertainty(o.value, o.standard_uncertainty)
+            lines.append(f"  {o.label}: {shown} {o.unit}")
+            for inp, share in sorted(o.contributions.items(), key=lambda kv: -abs(kv[1])):
+                if abs(share) >= 0.0005:
+                    lines.append(f"      {inp}: {share:.1%} of the variance")
+        if self.uncertain.warnings:
+            lines += ["", "Warnings:", *(f"  - {w}" for w in self.uncertain.warnings)]
+        return "\n".join(lines)
 
     @property
     def warnings(self) -> tuple[str, ...]:
@@ -163,6 +204,9 @@ class WorkspaceViewModel:
             "Inputs (as used, unrounded):",
             *(f"  {k} = {q.value!r} {q.unit}" for k, q in p.inputs.items()),
         ]
+        budget = self.uncertainty_budget_text()
+        if budget:
+            lines += ["", "Uncertainty budget:", budget]
         return "\n".join(lines)
 
     # ---- persistence and export ----
@@ -170,7 +214,10 @@ class WorkspaceViewModel:
     def save(self, path: str | os.PathLike[str], *, overwrite: bool = False) -> Path:
         if self.result is None:
             raise ValueError("There is no result to save.")
-        saved = self._service.save(path, self.result, name=self.name, notes=self.notes, overwrite=overwrite)
+        saved = self._service.save(
+            path, self.result, name=self.name, notes=self.notes, overwrite=overwrite,
+            uncertain=self.uncertain,
+        )
         self.last_saved = saved
         self._state.settings.add_recent(saved)
         self.notify()
@@ -192,8 +239,12 @@ class WorkspaceViewModel:
         record = opened.record
         self.spec = next(m for m in self.models() if m.model_id == record.model_id)
         self.fields = {
-            name: FieldInput(repr(q.value), q.unit) for name, q in record.inputs.items()
+            name: FieldInput(repr(q.value), q.unit, opened.outcome.uncertain.inputs[name].standard_uncertainty.__repr__()
+                             if opened.outcome.uncertain is not None
+                             and opened.outcome.uncertain.inputs[name].standard_uncertainty > 0.0 else "")
+            for name, q in record.inputs.items()
         }
+        self.correlations = dict(opened.correlations)
         self.name, self.notes = record.name, record.notes
         self.apply_outcome(opened.outcome)
         self.differences = opened.differences

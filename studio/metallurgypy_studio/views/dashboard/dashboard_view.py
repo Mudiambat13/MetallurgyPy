@@ -39,7 +39,7 @@ class DashboardView(QWidget):
         notice.setObjectName("Notice")
         notice.setWordWrap(True)
 
-        start = QPushButton("New calculation (Mass Balance)")
+        start = QPushButton("New calculation")
         start.setObjectName("Primary")
         start.clicked.connect(self.open_workspace)
         docs = QPushButton("Documentation and tutorials")

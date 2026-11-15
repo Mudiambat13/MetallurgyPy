@@ -38,8 +38,8 @@ def test_entry_point_builds_the_window():
 
 
 def test_navigation_switches_pages(window):
-    assert window.nav.count() == 4
-    for row in range(4):
+    assert window.nav.count() == 6
+    for row in range(6):
         window.nav.setCurrentRow(row)
         assert window.stack.currentIndex() == row
 
@@ -96,3 +96,29 @@ def test_save_and_reopen_through_the_view(window, tmp_path):
     assert window.vm.spec.model_id == "mass_balance.recovery"
     assert window.vm.differences == ()
     assert window.workspace.verify_label.text().startswith("Saved result reproduced")
+
+
+def test_import_view_lists_columns_and_reports_rows(window, tmp_path):
+    f = tmp_path / "d.csv"
+    f.write_text("mass [t],grade [%],rec [%]\n1000,2.5,92\n900,2.1,90\n800,2.0,x\n700,1.9,89\n600,1.7,88\n", encoding="utf-8")
+    view = window.import_view
+    assert window.import_vm.load(f)
+    assert view.columns.rowCount() == 3
+    for r, name in enumerate(("feed_mass", "feed_grade", "recovery")):
+        view.columns.cellWidget(r, 2).setText(name)
+    view._validate()
+    assert "4 valid row(s), 1 rejected" in view.summary.text()
+    assert view.results.rowCount() == 1
+
+
+def test_project_view_add_and_compare(window, tmp_path):
+    window.vm.select_model("mass_balance.recovery")
+    window.vm.fill_example()
+    window.vm.calculate()
+    pv = window.project_vm
+    assert pv.create(tmp_path / "p", "Pilot")
+    assert pv.add_current("A") and pv.add_current("B")
+    view = window.project_view
+    assert view.list.count() == 2
+    assert pv.compare([1, 2])
+    assert view.table.rowCount() == len(pv.comparison.rows)

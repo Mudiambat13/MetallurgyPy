@@ -47,6 +47,7 @@ class WorkspaceView(QWidget):
         self._service = service
         self._workers: set[CalcWorker] = set()
         self._edits: dict[str, QLineEdit] = {}
+        self._u_edits: dict[str, QLineEdit] = {}
         self._unit_boxes: dict[str, QComboBox] = {}
         self._error_labels: dict[str, QLabel] = {}
         self._build()
@@ -99,8 +100,8 @@ class WorkspaceView(QWidget):
         left_layout.addWidget(self.general_error)
         left_layout.addStretch(1)
 
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Quantity", "Value", "Unit", "Kind"])
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Quantity", "Value", "Unit", "Kind", "Std. uncertainty"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSortingEnabled(False)
@@ -173,6 +174,7 @@ class WorkspaceView(QWidget):
         while self.form.rowCount():
             self.form.removeRow(0)
         self._edits.clear()
+        self._u_edits.clear()
         self._unit_boxes.clear()
         self._error_labels.clear()
         spec = self.vm.spec
@@ -190,9 +192,19 @@ class WorkspaceView(QWidget):
             error.setObjectName("ErrorText")
             error.setWordWrap(True)
             error.hide()
+            u_edit = QLineEdit()
+            u_edit.setPlaceholderText("± u (optional)")
+            u_edit.setToolTip(
+                "Standard uncertainty of this value, in the same unit. Leave blank if the value is exact."
+            )
+            u_edit.setAccessibleName(f"{param.label} standard uncertainty")
+            u_edit.setMaximumWidth(120)
+            u_edit.textChanged.connect(lambda text, n=param.name: self.vm.set_field(n, uncertainty=text))
             row = QHBoxLayout()
             row.addWidget(edit, 1)
             row.addWidget(unit_box)
+            row.addWidget(u_edit)
+            self._u_edits[param.name] = u_edit
             cell = QVBoxLayout()
             cell.addLayout(row)
             cell.addWidget(error)
@@ -208,6 +220,10 @@ class WorkspaceView(QWidget):
             edit.blockSignals(True)
             edit.setText(field.text)
             edit.blockSignals(False)
+            u_edit = self._u_edits[name]
+            u_edit.blockSignals(True)
+            u_edit.setText(field.uncertainty)
+            u_edit.blockSignals(False)
             box = self._unit_boxes[name]
             box.blockSignals(True)
             box.setCurrentText(field.unit)
@@ -249,7 +265,10 @@ class WorkspaceView(QWidget):
         rows = vm.rows()
         self.table.setRowCount(len(rows))
         for r, row in enumerate(rows):
-            for c, text in enumerate((row.label, row.value_text, row.unit, KIND_LABELS.get(row.kind, row.kind))):
+            u_cell = f"± {row.uncertainty_text}" if row.uncertainty_text else ""
+            for c, text in enumerate(
+                (row.label, row.value_text, row.unit, KIND_LABELS.get(row.kind, row.kind), u_cell)
+            ):
                 self.table.setItem(r, c, QTableWidgetItem(text))
         self.table.resizeColumnsToContents()
 
@@ -289,8 +308,8 @@ class WorkspaceView(QWidget):
         self.vm.select_model(self.model_box.currentData())
 
     def _on_calculate(self) -> None:
-        model_id, fields = self.vm.prepare_run()
-        worker = CalcWorker(self._service, model_id, fields)
+        model_id, fields, correlations = self.vm.prepare_run()
+        worker = CalcWorker(self._service, model_id, fields, correlations)
         self._workers.add(worker)
 
         def done(outcome: RunOutcome, w: CalcWorker = worker) -> None:

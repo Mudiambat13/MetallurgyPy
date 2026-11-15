@@ -29,7 +29,8 @@
 
     ```bash
     pip install "metallurgypy[visualization]"
-    pip install "metallurgypy[uncertainty]"
+    pip install "metallurgypy[excel]"          # read .xlsx files
+    pip install "metallurgypy[uncertainty]"    # no extra package: uncertainty propagation is built in
     pip install "metallurgypy[all]"
     ```
 

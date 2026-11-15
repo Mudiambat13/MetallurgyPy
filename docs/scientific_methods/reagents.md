@@ -1,6 +1,6 @@
 # Reagents
 
-**Package:** `metallurgypy.reagents` · **Status:** specified, implementation in Phase 2
+**Package:** `metallurgypy.reagents` · **Status:** implemented (3 models)
 
 ## Scope
 

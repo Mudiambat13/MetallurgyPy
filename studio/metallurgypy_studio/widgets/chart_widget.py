@@ -51,18 +51,21 @@ class ChartWidget(QWidget):
         if chart is None:
             self._source.setText("No result to plot yet.")
             return
-        positions = list(range(len(chart.values)))
-        self.plot.addItem(
-            pg.BarGraphItem(
-                x=positions, height=list(chart.values), width=0.6, brush="#4a6b8a" if not self._dark else "#6fa3d6"
-            )
-        )
-        for x, value in zip(positions, chart.values, strict=True):
-            label = pg.TextItem(f"{value:.6g}", anchor=(0.5, 1.0), color="#e3e8ee" if self._dark else "#1d2733")
-            label.setPos(x, value)
-            self.plot.addItem(label)
-        self.plot.getAxis("bottom").setTicks([list(zip(positions, chart.categories, strict=True))])
-        self.plot.setLabel("left", f"Mass ({chart.unit})")
+        brush = "#6fa3d6" if self._dark else "#4a6b8a"
+        if chart.kind == "line":
+            self.plot.plot(list(chart.x), list(chart.values), pen=pg.mkPen(brush, width=2))
+            self.plot.getAxis("bottom").setTicks(None)
+            self.plot.setLabel("bottom", chart.x_label)
+        else:
+            positions = list(range(len(chart.values)))
+            self.plot.addItem(pg.BarGraphItem(x=positions, height=list(chart.values), width=0.6, brush=brush))
+            for x, value in zip(positions, chart.values, strict=True):
+                label = pg.TextItem(f"{value:.6g}", anchor=(0.5, 1.0), color="#e3e8ee" if self._dark else "#1d2733")
+                label.setPos(x, value)
+                self.plot.addItem(label)
+            self.plot.getAxis("bottom").setTicks([list(zip(positions, chart.categories, strict=True))])
+            self.plot.setLabel("bottom", "")
+        self.plot.setLabel("left", chart.y_label or f"Mass ({chart.unit})")
         self.plot.setTitle(chart.title)
         self.plot.showGrid(x=False, y=True, alpha=0.25)
         self.plot.enableAutoRange()

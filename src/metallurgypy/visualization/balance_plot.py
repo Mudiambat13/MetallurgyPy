@@ -29,10 +29,14 @@ def build_figure(chart: ChartData) -> Any:
     """Return a Matplotlib ``Figure`` (no pyplot, no global state, no display needed)."""
     figure = _figure_class()(figsize=(6.4, 4.2), layout="constrained")
     axes = figure.subplots()
-    bars = axes.bar(chart.categories, chart.values, color="#4a6b8a", width=0.6)
-    axes.set_ylabel(f"Mass ({chart.unit})")
+    if chart.kind == "line":
+        axes.plot(chart.x, chart.values, color="#4a6b8a", linewidth=2)
+        axes.set_xlabel(chart.x_label)
+    else:
+        bars = axes.bar(chart.categories, chart.values, color="#4a6b8a", width=0.6)
+        axes.bar_label(bars, labels=[f"{v:.6g}" for v in chart.values], padding=3)
+    axes.set_ylabel(chart.y_label or f"Mass ({chart.unit})")
     axes.set_title(chart.title)
-    axes.bar_label(bars, labels=[f"{v:.6g}" for v in chart.values], padding=3)
     axes.margins(y=0.12)
     axes.spines[["top", "right"]].set_visible(False)
     figure.text(0.01, 0.005, chart.source, fontsize=7, color="#555555", ha="left", va="bottom")

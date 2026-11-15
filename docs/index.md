@@ -4,8 +4,8 @@
 
 MetallurgyPy is an open-source scientific library for metallurgical process calculations, paired with a desktop application for people who prefer forms and charts to scripts.
 
-!!! warning "Project status: early development (0.1.0.dev0)"
-    The Core foundation, **Mass Balance** and a first **Studio** are implemented and tested. Every other module is planned: its page describes the intended design and says so. Nothing is published on PyPI yet.
+!!! warning "Project status: early development (0.2.0.dev0)"
+    All planned modules, uncertainty propagation, data import, comparison, reports, projects and **Studio** are implemented and tested, but the models are simplified and **have not been validated against experimental or plant data**, and Studio has not yet been run on a real display by the author of the code. See the [scientific audit](project/scientific_audit.md). Nothing is published on PyPI.
 
 ## Two products, one engine
 
@@ -40,3 +40,5 @@ MetallurgyPy is an open-source scientific library for metallurgical process calc
 - [Run a first calculation](getting_started.md)
 - [Understand the architecture](architecture.md)
 - [Browse the scientific methods](scientific_methods/index.md)
+- [Propagate uncertainty](tutorials/uncertainty.md) and [import data, compare, report](guides/workflows.md)
+- [Scientific audit](project/scientific_audit.md) and [security review](project/security.md)

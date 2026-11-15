@@ -15,6 +15,7 @@ Conventions (identical for every model in this module)
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
 
 from metallurgypy.core.exceptions import CalculationError, InvalidParameterError, ModelDomainError
 from metallurgypy.core.modes import CalculationMode, resolve_mode
@@ -26,10 +27,14 @@ from metallurgypy.core.units import (
     RATIO_UNITS,
     Quantity,
     as_quantity,
+    convert_exact,
 )
 from metallurgypy.core.validation import DEFAULT_TOLERANCES, Tolerances
 
-_SUPPORTED_MODES = (CalculationMode.STANDARD,)
+_SUPPORTED_MODES = (CalculationMode.STANDARD, CalculationMode.HIGH_PRECISION)
+_EXACT_METHOD = (
+    "Exact rational arithmetic (fractions.Fraction) on the float64 inputs; each output is rounded once to float64"
+)
 
 
 def _mass(name: str, raw: Quantity | float) -> Quantity:
@@ -136,16 +141,28 @@ class MassBalance:
         grade = self.feed_grade.to("fraction").value
         rec = self.recovery.to("fraction").value
 
-        metal_feed = mass * grade
-        metal_recovered = rec * metal_feed
-        # Subtraction keeps the balance exact; (1 - R) * m_feed is the independent cross-check.
-        metal_remaining = metal_feed - metal_recovered
-        cross_check = (1.0 - rec) * metal_feed
-        if not self._tol.isclose(metal_remaining, cross_check):
-            raise CalculationError(
-                f"Remaining metal {metal_remaining!r} {unit} disagrees with (1 - R) * m_feed "
-                f"= {cross_check!r} {unit}; this is a bug."
-            )
+        exact = self._mode is CalculationMode.HIGH_PRECISION
+        if exact:
+            f_mass = Fraction(mass)
+            f_grade = convert_exact(self.feed_grade.value, self.feed_grade.unit, "fraction")
+            f_rec = convert_exact(self.recovery.value, self.recovery.unit, "fraction")
+            f_feed = f_mass * f_grade
+            metal_feed = float(f_feed)
+            metal_recovered = float(f_rec * f_feed)
+            metal_remaining = float(f_feed - f_rec * f_feed)
+            loss = float(1 - f_rec)
+        else:
+            metal_feed = mass * grade
+            metal_recovered = rec * metal_feed
+            # Subtraction keeps the balance exact; (1 - R) * m_feed is the independent cross-check.
+            metal_remaining = metal_feed - metal_recovered
+            loss = 1.0 - rec
+            cross_check = (1.0 - rec) * metal_feed
+            if not self._tol.isclose(metal_remaining, cross_check):
+                raise CalculationError(
+                    f"Remaining metal {metal_remaining!r} {unit} disagrees with (1 - R) * m_feed "
+                    f"= {cross_check!r} {unit}; this is a bug."
+                )
 
         warnings: list[str] = []
         if grade == 0.0:
@@ -156,7 +173,7 @@ class MassBalance:
         provenance = Provenance(
             model_id=self.MODEL_ID,
             model_version=self.MODEL_VERSION,
-            method="Closed-form evaluation in float64",
+            method=_EXACT_METHOD if exact else "Closed-form evaluation in float64",
             equations=self.EQUATIONS,
             assumptions=self.ASSUMPTIONS,
             inputs={
@@ -173,7 +190,7 @@ class MassBalance:
             feed_mass=self.feed_mass,
             feed_grade=_fq(grade),
             recovery=_fq(rec),
-            loss=_fq(1.0 - rec),
+            loss=_fq(loss),
             metal_feed=Quantity(metal_feed, unit),
             metal_recovered=Quantity(metal_recovered, unit),
             metal_remaining=Quantity(metal_remaining, unit),
@@ -266,7 +283,7 @@ class TwoProductBalance:
         mode: CalculationMode | str = CalculationMode.STANDARD,
         tolerances: Tolerances = DEFAULT_TOLERANCES,
     ) -> None:
-        self._mode = resolve_mode(mode, _SUPPORTED_MODES)
+        self._mode = resolve_mode(mode, (CalculationMode.STANDARD,))  # high_precision: MassBalance only
         self._tol = tolerances
         self.feed_mass = _mass("feed_mass", feed_mass)
         self.feed_grade = _fraction("feed_grade", feed_grade, allowed=GRADE_UNITS)

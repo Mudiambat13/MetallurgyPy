@@ -81,8 +81,10 @@ def test_wrong_dimension_is_rejected():
 
 
 def test_unsupported_mode_is_refused_not_silently_ignored():
+    with pytest.raises(InvalidParameterError, match="propagate_model"):
+        MassBalance(10, 0.1, 0.5, mode="uncertainty_aware")
     with pytest.raises(InvalidParameterError, match="not implemented"):
-        MassBalance(10, 0.1, 0.5, mode="high_precision")
+        TwoProductBalance(10, 0.1, 0.5, 0.01, mode="high_precision")  # only MassBalance has it
 
 
 def test_result_traceability_and_unrounded_values():

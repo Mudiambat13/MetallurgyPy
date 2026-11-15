@@ -25,7 +25,11 @@ class CalcWorker(QRunnable):
     """
 
     def __init__(
-        self, service: CalculationService, model_id: str, fields: Mapping[str, FieldInput]
+        self,
+        service: CalculationService,
+        model_id: str,
+        fields: Mapping[str, FieldInput],
+        correlations: Mapping[tuple[str, str], float] | None = None,
     ) -> None:
         super().__init__()
         self.setAutoDelete(False)
@@ -33,7 +37,8 @@ class CalcWorker(QRunnable):
         self._service = service
         self._model_id = model_id
         self._fields = dict(fields)
+        self._correlations = dict(correlations or {})
 
     def run(self) -> None:
-        outcome: RunOutcome = self._service.run(self._model_id, self._fields)
+        outcome: RunOutcome = self._service.run(self._model_id, self._fields, self._correlations)
         self.signals.finished.emit(outcome)

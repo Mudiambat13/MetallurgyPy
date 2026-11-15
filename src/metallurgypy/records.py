@@ -29,7 +29,7 @@ import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from metallurgypy.core.exceptions import MetallurgyPyError, RecordFormatError
 from metallurgypy.core.results import CalculationResult
@@ -37,6 +37,9 @@ from metallurgypy.core.units import Quantity
 from metallurgypy.core.validation import DEFAULT_TOLERANCES, Tolerances
 from metallurgypy.registry import get_model
 from metallurgypy.version import __version__
+
+if TYPE_CHECKING:
+    from metallurgypy.precision.uncertainty import UncertainResult
 
 FORMAT_NAME = "metallurgypy.calculation"
 FORMAT_VERSION = 1
@@ -56,6 +59,22 @@ class CalculationRecord:
     notes: str = ""
     format_version: int = FORMAT_VERSION
     saved_with: str = ""
+    uncertainty: dict[str, Any] | None = None  # propagated uncertainty block, if the calculation had one
+
+
+def csv_safe(text: str) -> str:
+    """Neutralise spreadsheet formula injection in a *text* cell.
+
+    A cell that starts with ``= + - @`` (or a tab/CR) can be run as a formula when the CSV is
+    opened in a spreadsheet. Such text gets a leading apostrophe, unless it is just a number.
+    Never apply it to numeric cells.
+    """
+    if text and text[0] in "=+-@\t\r":
+        try:
+            float(text)
+        except ValueError:
+            return "'" + text
+    return text
 
 
 def _write_text(path: Path, text: str, *, overwrite: bool) -> None:
@@ -80,8 +99,13 @@ def save_record(
     name: str = "",
     notes: str = "",
     overwrite: bool = False,
+    uncertainty: UncertainResult | None = None,
 ) -> Path:
-    """Save ``result`` with its inputs so it can be reopened and verified."""
+    """Save ``result`` with its inputs so it can be reopened and verified.
+
+    If ``uncertainty`` (from :func:`metallurgypy.precision.propagate_model`) is given,
+    the input uncertainties, correlations and propagated output uncertainties are stored too.
+    """
     target = Path(path)
     payload = {
         "format": FORMAT_NAME,
@@ -93,6 +117,8 @@ def save_record(
         "inputs": {k: {"value": q.value, "unit": q.unit} for k, q in result.provenance.inputs.items()},
         "result": result.to_dict(),
     }
+    if uncertainty is not None:
+        payload["uncertainty"] = uncertainty.to_dict()
     text = json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
     _write_text(target, text, overwrite=overwrite)
     return target
@@ -110,6 +136,14 @@ def _parse_inputs(raw: Any) -> dict[str, Quantity]:
         except MetallurgyPyError as exc:
             raise RecordFormatError(f"Input {key!r} is invalid: {exc}") from None
     return inputs
+
+
+def _parse_uncertainty(raw: Any) -> dict[str, Any] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or not isinstance(raw.get("inputs"), dict):
+        raise RecordFormatError("'uncertainty' must be an object with an 'inputs' object.")
+    return raw
 
 
 def load_record(path: str | os.PathLike[str]) -> CalculationRecord:
@@ -147,6 +181,7 @@ def load_record(path: str | os.PathLike[str]) -> CalculationRecord:
         notes=str(data.get("notes", "")),
         format_version=version,
         saved_with=str(data.get("saved_with", "")),
+        uncertainty=_parse_uncertainty(data.get("uncertainty")),
     )
 
 
@@ -195,10 +230,11 @@ def result_to_csv(result: CalculationResult) -> str:
     writer = csv.writer(buffer, lineterminator="\n")
     writer.writerow(["section", "name", "label", "value", "unit", "kind"])
     for name, quantity in result.provenance.inputs.items():
-        writer.writerow(["input", name, name, repr(quantity.value), quantity.unit, "input"])
+        writer.writerow(["input", csv_safe(name), csv_safe(name), repr(quantity.value), csv_safe(quantity.unit), "input"])
     for item in result.outputs():
         writer.writerow(
-            ["output", item.name, item.label, repr(item.quantity.value), item.quantity.unit, item.kind]
+            ["output", csv_safe(item.name), csv_safe(item.label), repr(item.quantity.value),
+             csv_safe(item.quantity.unit), item.kind]
         )
     return buffer.getvalue()
 

@@ -2,8 +2,8 @@
 
 Studio is the desktop application built on the Core. It targets Windows and Linux, with macOS compatibility kept possible.
 
-!!! info "Status"
-    Implemented in this version: main window, side navigation, dashboard, module explorer, the **Calculation Workspace** (Mass Balance), interactive chart, save/reopen, CSV/JSON export, PNG/SVG chart export, light/dark theme and settings. Not yet implemented: Results Explorer comparison, Data Import, Project Manager, Report Builder, PDF/HTML reports. Those sections below describe the target design.
+!!! warning "Status: written and tested without a display"
+    Studio is implemented: dashboard, module explorer, the **Calculation Workspace** (all 21 models, generated forms, optional standard uncertainty per input, uncertainty budget), **Data Import**, **Projects** (comparison, HTML/PDF reports, archive), interactive chart, save/reopen, CSV/JSON export, PNG/SVG export, light/dark theme and settings. All logic (services and view models) is tested without Qt. The widgets themselves were **never executed** by the author because the build environment had no PySide6 or display; they are exercised by the CI job (offscreen) and need a first manual check on Windows and Linux.
 
 ```bash
 pip install "metallurgypy[gui]"
@@ -12,21 +12,20 @@ metallurgypy-studio
 
 ## Technology
 
-PySide6 (Qt), pyqtgraph for interactive charts, Matplotlib for publication-quality export, Pandas for tables.
+PySide6 (Qt), pyqtgraph for interactive charts and Matplotlib for publication-quality export. Tables use Qt's own widgets; there is no Pandas dependency.
 
 ## Screens
 
-| Screen | Purpose |
-|---|---|
-| **Dashboard** | Version, quick access to modules, recent projects and calculations, calculation task status. Shows real project data only, never fake industrial statistics |
-| **Module Explorer** | The scientific modules, with description, available models and a link to the documentation |
-| **Calculation Workspace** | Pick a model, fill a generated form with explicit units, validate, calculate, read results, warnings and assumptions, save |
-| **Results Explorer** | Numbers, tables, charts, uncertainties, scenario comparison, calculation details, export (CSV, JSON, Excel, PDF) |
-| **Scientific Visualization** | Zoom/pan, coordinates, legends, series and unit selection, PNG and SVG export, underlying data export, data provenance |
-| **Data Import** | CSV, XLSX, JSON with preview, separator choice, column mapping, type detection, units, validation and an invalid-rows report |
-| **Project Manager** | Create, open, save, notes, scenario comparison, project archive export |
-| **Report Builder** | PDF and HTML reports, plus CSV/Excel data |
-| **Settings** | Language, light/dark theme, display precision, default units, project location, export preferences, tolerances |
+| Screen | Status | Purpose |
+|---|---|---|
+| **Dashboard** | Implemented | Version, quick access, recent calculations and the session's calculations. Shows real state only, never fake industrial statistics |
+| **Modules** | Implemented | The scientific modules with description, available models and a link to the documentation |
+| **Calculation** | Implemented | Pick a model, fill a generated form with explicit units and optional standard uncertainties, calculate in a background thread, read results, warnings, assumptions, details and uncertainty budget, see the chart, save, export |
+| **Data Import** | Implemented | CSV, TSV, JSON and XLSX; column mapping with explicit units, type detection, validation, rejected-rows report, optional model run on every valid row |
+| **Projects** | Implemented | Create/open a project, add the current calculation, reopen, unlist, compare scenarios, export a comparison (CSV), HTML or PDF report, and a project archive |
+| **Settings** | Implemented | Light/dark theme, display precision, default folder |
+
+Not implemented (target design, not promised for 0.2): a separate results explorer, Excel export, series/unit selection in charts, interface languages, default-unit and tolerance settings, project-level notes.
 
 ## Honest-display rules
 
@@ -40,4 +39,4 @@ PySide6 (Qt), pyqtgraph for interactive charts, Matplotlib for publication-quali
 
 ## Projects
 
-Projects use a versioned, documented and migratable format. SQLite holds metadata and history; large tables can be stored separately.
+Projects use a versioned, documented format (`project.json`, format version 1). SQLite holds the activity history; each calculation is its own `.mpy.json` file. See [Data, comparison, reports and projects](../guides/workflows.md).
