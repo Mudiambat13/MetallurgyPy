@@ -66,9 +66,28 @@ nav:
       - Data, projects, comparison, reports: guides/workflows.md
   - API reference:
       - api/index.md
+      - "Core (units, results, errors)": api/core.md
+      - Model registry: api/registry.md
+      - Mass balance: api/mass_balance.md
+      - Reagents: api/reagents.md
+      - Electrowinning: api/electrowinning.md
+      - Flotation: api/flotation.md
+      - Filtration: api/filtration.md
+      - Hydrometallurgy: api/hydrometallurgy.md
+      - Solvent extraction: api/solvent_extraction.md
+      - Thermodynamics: api/thermodynamics.md
+      - Statistics: api/statistics.md
+      - Precision and uncertainty: api/precision.md
+      - Records and export: api/records.md
+      - Data import: api/data_io.md
+      - Scenario comparison: api/comparison.md
+      - Reports: api/reports.md
+      - Projects: api/projects.md
+      - Visualization: api/visualization.md
   - Project:
       - Scientific audit: project/scientific_audit.md
       - Security: project/security.md
+      - Deploying the docs: project/deploy_docs.md
       - Contributing: contributing.md
       - FAQ: faq.md
 

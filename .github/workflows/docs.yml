@@ -6,11 +6,15 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+      - "src/**"
+      - "tools/**"
       - ".github/workflows/docs.yml"
   pull_request:
     paths:
       - "docs/**"
       - "mkdocs.yml"
+      - "src/**"
+      - "tools/**"
   workflow_dispatch:
 
 permissions:
@@ -34,6 +38,11 @@ jobs:
 
       - name: Install documentation dependencies
         run: pip install -r docs/requirements.txt
+
+      - name: Check that generated pages match the code
+        run: |
+          python tools/gen_model_reference.py --check
+          python tools/gen_api_reference.py --check
 
       - name: Build site (strict: warnings fail the build)
         run: mkdocs build --strict

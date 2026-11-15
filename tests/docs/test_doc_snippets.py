@@ -34,3 +34,14 @@ def test_generated_model_pages_are_up_to_date():
     done = subprocess.run([sys.executable, str(ROOT / "tools" / "gen_model_reference.py"), "--check"],
                           capture_output=True, text=True)
     assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_generated_api_pages_are_up_to_date():
+    import subprocess
+    import sys
+
+    done = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "gen_api_reference.py"), "--check"],
+        capture_output=True, text=True, cwd=ROOT,
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
