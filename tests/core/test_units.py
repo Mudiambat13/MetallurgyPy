@@ -77,5 +77,5 @@ def test_as_quantity_default_unit_and_allowed_units():
     assert as_quantity("m", 5, default_unit="t", allowed_units=MASS_UNITS) == Quantity(5.0, "t")
     with pytest.raises(DimensionError, match="not accepted"):
         as_quantity("m", Quantity(5, "%"), default_unit="t", allowed_units=MASS_UNITS)
-    with pytest.raises(InvalidParameterError, match="^m:"):
+    with pytest.raises(InvalidParameterError, match=r"^m:"):
         as_quantity("m", math.nan, default_unit="t", allowed_units=MASS_UNITS)

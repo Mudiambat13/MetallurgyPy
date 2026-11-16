@@ -50,8 +50,12 @@ class ConstantPressureFiltration(BaseModel):
         self._inputs = {
             "viscosity": qty("viscosity", viscosity, unit="mPa.s", positive=True),
             "cake_resistance": qty("cake_resistance", cake_resistance, unit="m/kg", positive=True),
-            "solids_per_filtrate": qty("solids_per_filtrate", solids_per_filtrate, unit="kg/m3", positive=True),
-            "medium_resistance": qty("medium_resistance", medium_resistance, unit="1/m", non_negative=True),
+            "solids_per_filtrate": qty(
+                "solids_per_filtrate", solids_per_filtrate, unit="kg/m3", positive=True
+            ),
+            "medium_resistance": qty(
+                "medium_resistance", medium_resistance, unit="1/m", non_negative=True
+            ),
             "area": qty("area", area, unit="m2", positive=True),
             "pressure_drop": qty("pressure_drop", pressure_drop, unit="kPa", positive=True),
             "filtrate_volume": qty("filtrate_volume", filtrate_volume, unit="m3", positive=True),

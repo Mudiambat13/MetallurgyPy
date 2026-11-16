@@ -93,8 +93,12 @@ def test_product_rule_matches_the_analytic_gum_result():
 def test_sum_closure_remaining_is_exactly_one_minus_r_times_feed():
     # metal_remaining = F g (1 - R): its uncertainty from R alone is F g uR
     res = propagate_model(ONE_PRODUCT, _inputs(u_rec=1.0))
-    assert res["metal_remaining"].standard_uncertainty == pytest.approx(1000 * 0.025 * 0.01, rel=1e-6)
-    assert res["metal_feed"].standard_uncertainty == pytest.approx(0.0, abs=1e-9)  # does not depend on R
+    assert res["metal_remaining"].standard_uncertainty == pytest.approx(
+        1000 * 0.025 * 0.01, rel=1e-6
+    )
+    assert res["metal_feed"].standard_uncertainty == pytest.approx(
+        0.0, abs=1e-9
+    )  # does not depend on R
 
 
 def test_exact_inputs_give_zero_uncertainty_and_expanded_uncertainty_scales():
@@ -108,9 +112,14 @@ def test_exact_inputs_give_zero_uncertainty_and_expanded_uncertainty_scales():
 
 
 def test_input_kinds_expanded_and_rectangular_are_converted_before_propagation():
-    a = propagate_model(ONE_PRODUCT, {**_inputs(), "feed_mass": M(1000.0, "t", 20.0, "expanded", coverage_factor=2.0)})
+    a = propagate_model(
+        ONE_PRODUCT,
+        {**_inputs(), "feed_mass": M(1000.0, "t", 20.0, "expanded", coverage_factor=2.0)},
+    )
     b = propagate_model(ONE_PRODUCT, _inputs(10.0))
-    assert a["metal_recovered"].standard_uncertainty == pytest.approx(b["metal_recovered"].standard_uncertainty, rel=1e-9)
+    assert a["metal_recovered"].standard_uncertainty == pytest.approx(
+        b["metal_recovered"].standard_uncertainty, rel=1e-9
+    )
 
 
 def test_correlation_changes_the_result_as_the_covariance_formula_predicts():
@@ -136,7 +145,11 @@ def test_invalid_correlations_are_refused():
         propagate_model(ONE_PRODUCT, inputs, {("feed_mass", "nope"): 0.1})
     with pytest.raises(InvalidParameterError, match="different"):
         propagate_model(ONE_PRODUCT, inputs, {("feed_mass", "feed_mass"): 0.1})
-    bad = {("feed_mass", "feed_grade"): 0.9, ("feed_grade", "recovery"): 0.9, ("feed_mass", "recovery"): -0.9}
+    bad = {
+        ("feed_mass", "feed_grade"): 0.9,
+        ("feed_grade", "recovery"): 0.9,
+        ("feed_mass", "recovery"): -0.9,
+    }
     with pytest.raises(InvalidParameterError, match="semi-definite"):
         propagate_model(ONE_PRODUCT, inputs, bad)
 
@@ -149,7 +162,11 @@ def test_missing_and_unknown_inputs():
 
 
 def test_edge_of_domain_uses_a_one_sided_derivative_and_says_so():
-    inputs = {"feed_mass": M(1000.0, "t"), "feed_grade": M(2.5, "%"), "recovery": M(100.0, "%", 1.0)}
+    inputs = {
+        "feed_mass": M(1000.0, "t"),
+        "feed_grade": M(2.5, "%"),
+        "recovery": M(100.0, "%", 1.0),
+    }
     res = propagate_model(ONE_PRODUCT, inputs)
     assert any("edge of the model domain" in w for w in res.warnings)
     assert res["metal_recovered"].standard_uncertainty == pytest.approx(25.0 * 0.01, rel=1e-5)
@@ -170,8 +187,13 @@ def test_works_for_every_registered_model_with_nominal_example():
         except ModelDomainError:
             continue  # model not differentiable there: refusing is the documented behaviour
         for o in res.outputs.values():
-            assert math.isfinite(o.standard_uncertainty) and o.standard_uncertainty >= 0.0, spec.model_id
-            assert sum(o.contributions.values()) == pytest.approx(1.0, abs=1e-6) or o.standard_uncertainty == 0.0
+            assert math.isfinite(o.standard_uncertainty) and o.standard_uncertainty >= 0.0, (
+                spec.model_id
+            )
+            assert (
+                sum(o.contributions.values()) == pytest.approx(1.0, abs=1e-6)
+                or o.standard_uncertainty == 0.0
+            )
 
 
 # ------------------------------- Monte Carlo ------------------------------- #
@@ -188,19 +210,32 @@ def test_monte_carlo_agrees_with_gum_for_a_nearly_linear_model():
 
 
 def test_monte_carlo_is_reproducible_and_respects_correlation():
-    meas = {"feed_mass": M(1000.0, "t", 10.0), "feed_grade": M(2.5, "%"), "recovery": M(92.0, "%", 1.0)}
+    meas = {
+        "feed_mass": M(1000.0, "t", 10.0),
+        "feed_grade": M(2.5, "%"),
+        "recovery": M(92.0, "%", 1.0),
+    }
     a = monte_carlo(ONE_PRODUCT, meas, samples=2000, seed=1)
     b = monte_carlo(ONE_PRODUCT, meas, samples=2000, seed=1)
     assert a.outputs["metal_recovered"].mean == b.outputs["metal_recovered"].mean
     pos = monte_carlo(ONE_PRODUCT, meas, {("feed_mass", "recovery"): 0.9}, samples=5000, seed=2)
     neg = monte_carlo(ONE_PRODUCT, meas, {("feed_mass", "recovery"): -0.9}, samples=5000, seed=2)
-    assert pos.outputs["metal_recovered"].standard_deviation > neg.outputs["metal_recovered"].standard_deviation
+    assert (
+        pos.outputs["metal_recovered"].standard_deviation
+        > neg.outputs["metal_recovered"].standard_deviation
+    )
 
 
 def test_monte_carlo_reports_rejected_draws_and_validates_arguments():
-    meas = {"feed_mass": M(1000.0, "t", 10.0), "feed_grade": M(2.5, "%"), "recovery": M(99.5, "%", 1.0)}
+    meas = {
+        "feed_mass": M(1000.0, "t", 10.0),
+        "feed_grade": M(2.5, "%"),
+        "recovery": M(99.5, "%", 1.0),
+    }
     mc = monte_carlo(ONE_PRODUCT, meas, samples=1000, seed=3)
-    assert mc.rejected > 0 and any("rejected" in w for w in mc.warnings)  # recovery > 100 % is invalid
+    assert mc.rejected > 0 and any(
+        "rejected" in w for w in mc.warnings
+    )  # recovery > 100 % is invalid
     with pytest.raises(InvalidParameterError, match="samples"):
         monte_carlo(ONE_PRODUCT, meas, samples=10, seed=1)
 
@@ -209,19 +244,33 @@ def test_monte_carlo_reports_rejected_draws_and_validates_arguments():
 
 
 def test_sensitivity_coefficients_elasticities():
-    inputs = {"feed_mass": Quantity(1000, "t"), "feed_grade": Quantity(2.5, "%"), "recovery": Quantity(92, "%")}
+    inputs = {
+        "feed_mass": Quantity(1000, "t"),
+        "feed_grade": Quantity(2.5, "%"),
+        "recovery": Quantity(92, "%"),
+    }
     entries = {(e.output, e.input): e for e in sensitivity_coefficients(ONE_PRODUCT, inputs)}
     # metal_recovered is proportional to each input: elasticity 1
     for name in ("feed_mass", "feed_grade", "recovery"):
         assert entries[("metal_recovered", name)].normalised == pytest.approx(1.0, rel=1e-6)
     # metal_remaining ~ (1 - R): elasticity to R is -R/(1-R) = -11.5
-    assert entries[("metal_remaining", "recovery")].normalised == pytest.approx(-0.92 / 0.08, rel=1e-5)
+    assert entries[("metal_remaining", "recovery")].normalised == pytest.approx(
+        -0.92 / 0.08, rel=1e-5
+    )
     assert entries[("metal_feed", "recovery")].derivative == pytest.approx(0.0, abs=1e-9)
 
 
 def test_one_at_a_time_reports_domain_exits_instead_of_hiding_them():
-    inputs = {"feed_mass": Quantity(1000, "t"), "feed_grade": Quantity(2.5, "%"), "recovery": Quantity(95, "%")}
-    rows = [e for e in one_at_a_time(ONE_PRODUCT, inputs, 0.1) if e.input == "recovery" and e.output == "metal_recovered"]
+    inputs = {
+        "feed_mass": Quantity(1000, "t"),
+        "feed_grade": Quantity(2.5, "%"),
+        "recovery": Quantity(95, "%"),
+    }
+    rows = [
+        e
+        for e in one_at_a_time(ONE_PRODUCT, inputs, 0.1)
+        if e.input == "recovery" and e.output == "metal_recovered"
+    ]
     assert rows[0].low == pytest.approx(25 * 0.855, rel=1e-12)
     assert rows[0].high is None  # 95 % * 1.1 = 104.5 % is outside the model
     with pytest.raises(InvalidParameterError):
@@ -233,7 +282,14 @@ def test_one_at_a_time_reports_domain_exits_instead_of_hiding_them():
 
 @pytest.mark.parametrize(
     ("value", "digits", "expected"),
-    [(123456.0, 3, 123000.0), (0.0123456, 2, 0.012), (2.5, 1, 3.0), (-2.5, 1, -3.0), (0.0, 3, 0.0), (9.999, 2, 10.0)],
+    [
+        (123456.0, 3, 123000.0),
+        (0.0123456, 2, 0.012),
+        (2.5, 1, 3.0),
+        (-2.5, 1, -3.0),
+        (0.0, 3, 0.0),
+        (9.999, 2, 10.0),
+    ],
 )
 def test_round_sig(value, digits, expected):
     assert round_sig(value, digits) == expected
@@ -290,5 +346,7 @@ def test_high_precision_unit_conversion_is_exact():
     assert convert_exact(1.0, "t", "kg") == 1000
     with pytest.raises(Exception, match="offset"):
         convert_exact(25.0, "degC", "K")
-    r = MassBalance(Quantity(1000, "t"), Quantity(2.5, "%"), Quantity(92, "%"), mode="high_precision").calculate()
+    r = MassBalance(
+        Quantity(1000, "t"), Quantity(2.5, "%"), Quantity(92, "%"), mode="high_precision"
+    ).calculate()
     assert r.metal_recovered.value == pytest.approx(23.0, rel=1e-15)

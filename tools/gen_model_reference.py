@@ -27,11 +27,28 @@ def render_models(module_key: str) -> str:
     for spec in list_models(module_key):
         result = spec.run(dict(spec.example))
         prov = result.provenance
-        out += [f"### {spec.title}", "", f"`{spec.model_id}` · model version {spec.model_version}", "", spec.description, ""]
+        out += [
+            f"### {spec.title}",
+            "",
+            f"`{spec.model_id}` · model version {spec.model_version}",
+            "",
+            spec.description,
+            "",
+        ]
         out += ["| Parameter | Meaning | Default unit |", "|---|---|---|"]
         for p in spec.parameters:
             out.append(f"| `{p.name}` | {p.label}. {p.description} | {p.default_unit} |")
-        out += ["", "**Equations**", "", "```text", *prov.equations, "```", "", "**Assumptions and limits**", ""]
+        out += [
+            "",
+            "**Equations**",
+            "",
+            "```text",
+            *prov.equations,
+            "```",
+            "",
+            "**Assumptions and limits**",
+            "",
+        ]
         out += [f"- {a}" for a in prov.assumptions]
         if prov.convergence != "not_applicable":
             out += ["", f"**Numerical method:** {prov.method}."]
@@ -39,7 +56,9 @@ def render_models(module_key: str) -> str:
         out += ["| Input | Value | Unit |", "|---|---|---|"]
         out += [f"| `{k}` | {q.value:.6g} | {q.unit} |" for k, q in spec.example.items()]
         out += ["", "| Output | Value | Unit |", "|---|---|---|"]
-        out += [f"| {o.label} | {o.quantity.value:.6g} | {o.quantity.unit} |" for o in result.outputs()]
+        out += [
+            f"| {o.label} | {o.quantity.value:.6g} | {o.quantity.unit} |" for o in result.outputs()
+        ]
         if result.warnings:
             out += ["", *[f"!!! warning\n    {w}" for w in result.warnings]]
         out.append("")

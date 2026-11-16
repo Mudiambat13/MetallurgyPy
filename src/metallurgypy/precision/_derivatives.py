@@ -30,7 +30,9 @@ def outputs_of(result: CalculationResult) -> dict[str, Quantity]:
     return {o.name: o.quantity for o in result.outputs()}
 
 
-def _run(spec: ModelSpec, inputs: Mapping[str, Quantity], name: str, value: float) -> dict[str, Quantity]:
+def _run(
+    spec: ModelSpec, inputs: Mapping[str, Quantity], name: str, value: float
+) -> dict[str, Quantity]:
     changed = dict(inputs)
     changed[name] = Quantity(value, inputs[name].unit)
     return outputs_of(spec.run(changed))

@@ -44,8 +44,12 @@ class Dilution(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "stock_concentration": qty("stock_concentration", stock_concentration, unit="g/L", positive=True),
-            "target_concentration": qty("target_concentration", target_concentration, unit="g/L", positive=True),
+            "stock_concentration": qty(
+                "stock_concentration", stock_concentration, unit="g/L", positive=True
+            ),
+            "target_concentration": qty(
+                "target_concentration", target_concentration, unit="g/L", positive=True
+            ),
             "final_volume": qty("final_volume", final_volume, unit="L", positive=True),
         }
 
@@ -98,7 +102,9 @@ class ConcentrationConversion(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "mass_concentration": qty("mass_concentration", mass_concentration, unit="g/L", non_negative=True),
+            "mass_concentration": qty(
+                "mass_concentration", mass_concentration, unit="g/L", non_negative=True
+            ),
             "molar_mass": qty("molar_mass", molar_mass, unit="g/mol", positive=True),
         }
 
@@ -140,15 +146,19 @@ class ReagentConsumption(BaseModel):
         super().__init__(mode=mode, tolerances=tolerances)
         hours = qty("operating_hours_per_day", operating_hours_per_day, unit="h", positive=True)
         if hours.to("h").value > 24.0:
-            raise InvalidParameterError(
-                f"operating_hours_per_day = {hours} exceeds 24 h in a day."
-            )
+            raise InvalidParameterError(f"operating_hours_per_day = {hours} exceeds 24 h in a day.")
         self._inputs = {
             "ore_throughput": qty("ore_throughput", ore_throughput, unit="t/h", positive=True),
-            "dosage": qty("dosage", dosage, unit="kg/t", allowed=("kg/t", "g/t", "%"), non_negative=True),
-            "purity": qty("purity", purity, unit="fraction", allowed=("fraction", "%"), fraction=True),
+            "dosage": qty(
+                "dosage", dosage, unit="kg/t", allowed=("kg/t", "g/t", "%"), non_negative=True
+            ),
+            "purity": qty(
+                "purity", purity, unit="fraction", allowed=("fraction", "%"), fraction=True
+            ),
             "operating_hours_per_day": hours,
-            "campaign_duration": qty("campaign_duration", campaign_duration, unit="d", positive=True),
+            "campaign_duration": qty(
+                "campaign_duration", campaign_duration, unit="d", positive=True
+            ),
         }
         if self._inputs["purity"].to("fraction").value == 0.0:
             raise InvalidParameterError("purity must be strictly positive.")
@@ -171,8 +181,18 @@ class ReagentConsumption(BaseModel):
                 out("active_per_hour", "Active reagent per hour", active_h, "kg/h"),
                 out("product_per_hour", "Commercial product per hour", product_h, "kg/h"),
                 out("product_per_day", "Commercial product per operating day", product_day, "kg"),
-                out("product_per_campaign", "Commercial product per campaign", product_campaign / 1000.0, "t"),
+                out(
+                    "product_per_campaign",
+                    "Commercial product per campaign",
+                    product_campaign / 1000.0,
+                    "t",
+                ),
                 out("ore_per_campaign", "Ore processed per campaign", ore_campaign_t, "t"),
-                out("specific_consumption", "Commercial product per tonne of ore", dosage / purity * 1000.0, "kg/t"),
+                out(
+                    "specific_consumption",
+                    "Commercial product per tonne of ore",
+                    dosage / purity * 1000.0,
+                    "kg/t",
+                ),
             ]
         )

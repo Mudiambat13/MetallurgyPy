@@ -8,7 +8,9 @@ from metallurgypy.core.units import GRADE_UNITS, MASS_UNITS, RATIO_UNITS, Quanti
 from metallurgypy.mass_balance.models import MassBalance, TwoProductBalance
 from metallurgypy.registry import ModelSpec, ParameterSpec, register
 
-_FEED_MASS = ParameterSpec("feed_mass", "Feed mass", "Mass of the feed stream (> 0).", MASS_UNITS, "t")
+_FEED_MASS = ParameterSpec(
+    "feed_mass", "Feed mass", "Mass of the feed stream (> 0).", MASS_UNITS, "t"
+)
 _FEED_GRADE = ParameterSpec(
     "feed_grade", "Feed grade", "Mass fraction of the metal in the feed.", GRADE_UNITS, "%"
 )
@@ -63,10 +65,18 @@ register(
             _FEED_MASS,
             _FEED_GRADE,
             ParameterSpec(
-                "concentrate_grade", "Concentrate grade", "Mass fraction of the metal in the concentrate.", GRADE_UNITS, "%"
+                "concentrate_grade",
+                "Concentrate grade",
+                "Mass fraction of the metal in the concentrate.",
+                GRADE_UNITS,
+                "%",
             ),
             ParameterSpec(
-                "tailings_grade", "Tailings grade", "Mass fraction of the metal in the tailings.", GRADE_UNITS, "%"
+                "tailings_grade",
+                "Tailings grade",
+                "Mass fraction of the metal in the tailings.",
+                GRADE_UNITS,
+                "%",
             ),
         ),
         factory=_two_product,

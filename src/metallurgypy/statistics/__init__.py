@@ -19,7 +19,9 @@ def _clean(name: str, values: Sequence[float], minimum: int) -> list[float]:
     data = []
     for v in values:
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
-            raise InvalidParameterError(f"{name} contains a non-numeric or non-finite value: {v!r}.")
+            raise InvalidParameterError(
+                f"{name} contains a non-numeric or non-finite value: {v!r}."
+            )
         data.append(float(v))
     if len(data) < minimum:
         raise InvalidParameterError(f"{name} needs at least {minimum} values, got {len(data)}.")
@@ -130,7 +132,9 @@ def detect_outliers(values: Sequence[float], threshold: float = 3.5) -> Outliers
     med = _st.median(data)
     mad = _st.median([abs(v - med) for v in data])
     if mad == 0.0:
-        raise CalculationError("MAD is zero (at least half the values are identical): the modified z-score is undefined.")
+        raise CalculationError(
+            "MAD is zero (at least half the values are identical): the modified z-score is undefined."
+        )
     scores = tuple(0.6745 * (v - med) / mad for v in data)
     flagged = tuple(i for i, s in enumerate(scores) if abs(s) > threshold)
     return Outliers(flagged, scores, threshold, med, mad)

@@ -43,7 +43,10 @@ def test_semicolon_and_decimal_comma(tmp_path):
 
 def test_bad_rows_are_reported_not_dropped(tmp_path):
     f = tmp_path / "bad.csv"
-    f.write_text("sample,mass,grade,rec\nA,1000,2.5,92\nB,abc,1.8,88\nC,-5,1,90\nD,100,2,120\nE,10,,50\n", encoding="utf-8")
+    f.write_text(
+        "sample,mass,grade,rec\nA,1000,2.5,92\nB,abc,1.8,88\nC,-5,1,90\nD,100,2,120\nE,10,,50\n",
+        encoding="utf-8",
+    )
     rep = import_table(read_table(f), MAP)
     assert [r.row_number for r in rep.rows] == [1]
     assert [r.row_number for r in rep.rejected] == [2, 3, 4, 5]
@@ -134,8 +137,8 @@ def test_run_batch_isolates_failures(tmp_path):
     assert all(i.result is not None for i in items)
     assert items[0].result.get("metal_recovered").value == pytest.approx(1000 * 0.025 * 0.92)
     # a row missing a parameter fails alone
-    from metallurgypy.data_io import ImportedRow
     from metallurgypy.core import Quantity
+    from metallurgypy.data_io import ImportedRow
 
     broken = ImportedRow(9, {"feed_mass": Quantity(1.0, "t")})
     mixed = run_batch("mass_balance.recovery", [rep.rows[0], broken])

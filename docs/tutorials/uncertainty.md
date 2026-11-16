@@ -4,12 +4,16 @@ This tutorial uses **fictitious** numbers. It shows how the uncertainty of a fee
 
 ```python
 from metallurgypy.precision import (
-    Measurement, propagate_model, monte_carlo, one_at_a_time, format_with_uncertainty,
+    Measurement,
+    propagate_model,
+    monte_carlo,
+    one_at_a_time,
+    format_with_uncertainty,
 )
 
 inputs = {
-    "feed_mass": Measurement(1000, "t", 5),      # standard uncertainty 5 t
-    "feed_grade": Measurement(2.5, "%", 0.05),   # +/- 0.05 percentage points
+    "feed_mass": Measurement(1000, "t", 5),  # standard uncertainty 5 t
+    "feed_grade": Measurement(2.5, "%", 0.05),  # +/- 0.05 percentage points
     "recovery": Measurement(92, "%", 1.0),
 }
 

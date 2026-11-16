@@ -157,7 +157,14 @@ class WorkspaceViewModel:
                 u = self.uncertain.outputs[o.name].standard_uncertainty
                 u_text = format_number(u, min(digits, 3)) if u > 0.0 else "0"
             rows.append(
-                ResultRow(o.name, o.label, format_number(o.quantity.value, digits), o.quantity.unit, o.kind, u_text)
+                ResultRow(
+                    o.name,
+                    o.label,
+                    format_number(o.quantity.value, digits),
+                    o.quantity.unit,
+                    o.kind,
+                    u_text,
+                )
             )
         return rows
 
@@ -165,8 +172,11 @@ class WorkspaceViewModel:
         """Plain-text uncertainty budget: method, warnings, and each input's share of the variance."""
         if self.uncertain is None:
             return ""
-        lines = [f"Method: {self.uncertain.method}", "Standard uncertainties u(y) (coverage factor k = 1):"]
-        for name, o in self.uncertain.outputs.items():
+        lines = [
+            f"Method: {self.uncertain.method}",
+            "Standard uncertainties u(y) (coverage factor k = 1):",
+        ]
+        for o in self.uncertain.outputs.values():
             if o.standard_uncertainty == 0.0:
                 continue
             shown = format_with_uncertainty(o.value, o.standard_uncertainty)
@@ -215,7 +225,11 @@ class WorkspaceViewModel:
         if self.result is None:
             raise ValueError("There is no result to save.")
         saved = self._service.save(
-            path, self.result, name=self.name, notes=self.notes, overwrite=overwrite,
+            path,
+            self.result,
+            name=self.name,
+            notes=self.notes,
+            overwrite=overwrite,
             uncertain=self.uncertain,
         )
         self.last_saved = saved
@@ -239,9 +253,14 @@ class WorkspaceViewModel:
         record = opened.record
         self.spec = next(m for m in self.models() if m.model_id == record.model_id)
         self.fields = {
-            name: FieldInput(repr(q.value), q.unit, opened.outcome.uncertain.inputs[name].standard_uncertainty.__repr__()
-                             if opened.outcome.uncertain is not None
-                             and opened.outcome.uncertain.inputs[name].standard_uncertainty > 0.0 else "")
+            name: FieldInput(
+                repr(q.value),
+                q.unit,
+                opened.outcome.uncertain.inputs[name].standard_uncertainty.__repr__()
+                if opened.outcome.uncertain is not None
+                and opened.outcome.uncertain.inputs[name].standard_uncertainty > 0.0
+                else "",
+            )
             for name, q in record.inputs.items()
         }
         self.correlations = dict(opened.correlations)

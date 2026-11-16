@@ -12,7 +12,13 @@ You say what each column means. Units are **never guessed silently**: a numeric 
 import tempfile
 from pathlib import Path
 
-from metallurgypy.data_io import ColumnMapping, import_table, read_table, run_batch, write_rejected_csv
+from metallurgypy.data_io import (
+    ColumnMapping,
+    import_table,
+    read_table,
+    run_batch,
+    write_rejected_csv,
+)
 
 work = Path(tempfile.mkdtemp())
 (work / "assays.csv").write_text(
@@ -25,13 +31,16 @@ work = Path(tempfile.mkdtemp())
     encoding="utf-8",
 )
 
-table = read_table(work / "assays.csv")          # delimiter ';' and decimal ',' detected
-report = import_table(table, [
-    ColumnMapping("sample", "sample", kind="text"),
-    ColumnMapping("mass [t]", "feed_mass", "t", minimum=0.0),
-    ColumnMapping("grade [%]", "feed_grade", "%"),
-    ColumnMapping("rec [%]", "recovery", "%", maximum=100.0),
-])
+table = read_table(work / "assays.csv")  # delimiter ';' and decimal ',' detected
+report = import_table(
+    table,
+    [
+        ColumnMapping("sample", "sample", kind="text"),
+        ColumnMapping("mass [t]", "feed_mass", "t", minimum=0.0),
+        ColumnMapping("grade [%]", "feed_grade", "%"),
+        ColumnMapping("rec [%]", "recovery", "%", maximum=100.0),
+    ],
+)
 print(len(report.rows), "valid;", len(report.rejected), "rejected")
 for row in report.rejected:
     print(row.row_number, row.reasons)
@@ -55,12 +64,17 @@ from metallurgypy.core import Quantity
 from metallurgypy.registry import get_model
 
 model = get_model("mass_balance.recovery")
+
+
 def scenario(recovery):
-    return model.run({
-        "feed_mass": Quantity(1000, "t"),
-        "feed_grade": Quantity(2.5, "%"),
-        "recovery": Quantity(recovery, "%"),
-    })
+    return model.run(
+        {
+            "feed_mass": Quantity(1000, "t"),
+            "feed_grade": Quantity(2.5, "%"),
+            "recovery": Quantity(recovery, "%"),
+        }
+    )
+
 
 comparison = compare({"base": scenario(92), "improved": scenario(95)})
 row = next(r for r in comparison.outputs() if r.name == "metal_recovered")

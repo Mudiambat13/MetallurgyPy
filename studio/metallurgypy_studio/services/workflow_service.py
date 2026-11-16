@@ -47,7 +47,9 @@ class LoadedCalculation:
 
 
 class DataService:
-    def read(self, path: StrPath, *, delimiter: str | None = None, decimal: str | None = None) -> Table:
+    def read(
+        self, path: StrPath, *, delimiter: str | None = None, decimal: str | None = None
+    ) -> Table:
         return read_table(path, delimiter=delimiter, decimal=decimal)
 
     def describe(self, table: Table) -> tuple[ColumnInfo, ...]:
@@ -62,7 +64,9 @@ class DataService:
     ) -> tuple[BatchItem, ...]:
         return run_batch(get_model(model_id), report.rows, fixed)
 
-    def export_rejected(self, path: StrPath, report: ImportReport, *, overwrite: bool = False) -> Path:
+    def export_rejected(
+        self, path: StrPath, report: ImportReport, *, overwrite: bool = False
+    ) -> Path:
         return write_rejected_csv(path, report, overwrite=overwrite)
 
 
@@ -77,7 +81,12 @@ class ProjectService:
         return Project.open(folder)
 
     def add(
-        self, project: Project, result: CalculationResult, name: str, *, notes: str = "",
+        self,
+        project: Project,
+        result: CalculationResult,
+        name: str,
+        *,
+        notes: str = "",
         uncertain: UncertainResult | None = None,
     ) -> ProjectEntry:
         return project.add_calculation(result, name, notes=notes, uncertain=uncertain)
@@ -89,10 +98,16 @@ class ProjectService:
         if opened.outcome.result is None:
             raise ValueError(opened.outcome.error or "The saved calculation can no longer be run.")
         return LoadedCalculation(
-            entry, opened.outcome.result, opened.outcome.uncertain, opened.record.notes, opened.differences
+            entry,
+            opened.outcome.result,
+            opened.outcome.uncertain,
+            opened.record.notes,
+            opened.differences,
         )
 
-    def compare(self, project: Project, entry_ids: Sequence[int], baseline_id: int | None = None) -> Comparison:
+    def compare(
+        self, project: Project, entry_ids: Sequence[int], baseline_id: int | None = None
+    ) -> Comparison:
         loaded = {e: self.load(project, e) for e in entry_ids}
         scenarios = {f"{lc.entry.name} (#{i})": lc.result for i, lc in loaded.items()}
         base = None
@@ -100,12 +115,20 @@ class ProjectService:
             base = f"{loaded[baseline_id].entry.name} (#{baseline_id})"
         return compare(scenarios, baseline=base)
 
-    def export_comparison(self, path: StrPath, comparison: Comparison, *, overwrite: bool = False) -> Path:
+    def export_comparison(
+        self, path: StrPath, comparison: Comparison, *, overwrite: bool = False
+    ) -> Path:
         return export_comparison_csv(path, comparison, overwrite=overwrite)
 
     def export_report(
-        self, project: Project, entry_ids: Sequence[int], path: StrPath, *,
-        fmt: str = "html", author: str = "", overwrite: bool = False,
+        self,
+        project: Project,
+        entry_ids: Sequence[int],
+        path: StrPath,
+        *,
+        fmt: str = "html",
+        author: str = "",
+        overwrite: bool = False,
     ) -> Path:
         entries = []
         for i in entry_ids:

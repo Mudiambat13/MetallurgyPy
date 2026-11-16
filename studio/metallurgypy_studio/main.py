@@ -19,7 +19,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="build the main window, then exit (used to verify the installation)",
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+    )
 
     try:
         from PySide6.QtWidgets import QApplication

@@ -30,7 +30,11 @@ def test_reference_case_specification_example():
 
 def test_reference_case_half_recovery():
     r = MassBalance(100, 0.10, 0.5).calculate()
-    assert (r.metal_feed.value, r.metal_recovered.value, r.metal_remaining.value) == (10.0, 5.0, 5.0)
+    assert (r.metal_feed.value, r.metal_recovered.value, r.metal_remaining.value) == (
+        10.0,
+        5.0,
+        5.0,
+    )
 
 
 def test_units_are_honoured_and_equivalent():
@@ -39,7 +43,9 @@ def test_units_are_honoured_and_equivalent():
         Quantity(1_000_000, "kg"), Quantity(2.5, "%"), Quantity(92, "%")
     ).calculate()
     assert other.metal_recovered.unit == "kg"
-    assert other.metal_recovered.to("t").value == pytest.approx(base.metal_recovered.value, rel=1e-12)
+    assert other.metal_recovered.to("t").value == pytest.approx(
+        base.metal_recovered.value, rel=1e-12
+    )
     ppm = MassBalance(1, Quantity(25_000, "g/t"), 1).calculate()
     assert ppm.metal_feed.value == pytest.approx(0.025, rel=1e-12)
 
@@ -94,7 +100,9 @@ def test_result_traceability_and_unrounded_values():
     assert p.equations and p.assumptions
     assert p.tolerances == Tolerances(rel=1e-10, abs=1e-13)
     assert p.calculation_mode == "standard"
-    assert p.inputs["feed_grade"] == Quantity(0.025, "fraction")  # bare number: documented default unit
+    assert p.inputs["feed_grade"] == Quantity(
+        0.025, "fraction"
+    )  # bare number: documented default unit
     assert p.software_version and p.timestamp.endswith("+00:00")
     third = MassBalance(1, 1 / 3, 1 / 7).calculate()
     assert third.metal_feed.value == 1 / 3  # no rounding anywhere
@@ -139,7 +147,9 @@ def test_two_product_reference_case():
     assert r.enrichment_ratio.value == pytest.approx(5.0, rel=1e-14)
     assert r.metal_feed.value == pytest.approx(10.0, rel=1e-14)
     assert r.metal_concentrate.value + r.metal_tailings.value == pytest.approx(10.0, rel=1e-14)
-    assert abs(r.mass_closure_residual.value) < 1e-12 and abs(r.metal_closure_residual.value) < 1e-12
+    assert (
+        abs(r.mass_closure_residual.value) < 1e-12 and abs(r.metal_closure_residual.value) < 1e-12
+    )
 
 
 def test_recovery_is_not_mass_yield():

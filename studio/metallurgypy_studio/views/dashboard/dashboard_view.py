@@ -50,7 +50,9 @@ class DashboardView(QWidget):
         quick.addStretch(1)
 
         self.recent = QListWidget()
-        self.recent.itemActivated.connect(lambda item: self.open_file.emit(item.data(Qt.ItemDataRole.UserRole)))
+        self.recent.itemActivated.connect(
+            lambda item: self.open_file.emit(item.data(Qt.ItemDataRole.UserRole))
+        )
         recent_box = QGroupBox("Recent calculations (double-click to open)")
         QVBoxLayout(recent_box).addWidget(self.recent)
 

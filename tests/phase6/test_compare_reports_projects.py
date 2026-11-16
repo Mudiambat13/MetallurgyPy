@@ -14,7 +14,11 @@ from metallurgypy.reports import ReportEntry, build_report, render_html, write_h
 
 def _run(mass=1000.0, rec=0.92):
     return get_model("mass_balance.recovery").run(
-        {"feed_mass": Quantity(mass, "t"), "feed_grade": Quantity(0.025, "fraction"), "recovery": Quantity(rec, "fraction")}
+        {
+            "feed_mass": Quantity(mass, "t"),
+            "feed_grade": Quantity(0.025, "fraction"),
+            "recovery": Quantity(rec, "fraction"),
+        }
     )
 
 
@@ -33,7 +37,11 @@ def test_compare_differences_against_baseline():
 
 def test_compare_converts_units_and_validates():
     other = get_model("mass_balance.recovery").run(
-        {"feed_mass": Quantity(1_000_000.0, "kg"), "feed_grade": Quantity(2.5, "%"), "recovery": Quantity(92.0, "%")}
+        {
+            "feed_mass": Quantity(1_000_000.0, "kg"),
+            "feed_grade": Quantity(2.5, "%"),
+            "recovery": Quantity(92.0, "%"),
+        }
     )
     c = compare({"a": _run(), "b": other})
     row = next(r for r in c.outputs() if r.name == "metal_recovered")
@@ -62,7 +70,10 @@ def test_compare_flags_different_models_and_exports(tmp_path):
 
 def test_report_html_content_and_escaping(tmp_path):
     entry = ReportEntry(
-        "Scenario <b>1</b>", _run(), observations={"Assay <script>": Quantity(2.4, "%")}, notes="a & b"
+        "Scenario <b>1</b>",
+        _run(),
+        observations={"Assay <script>": Quantity(2.4, "%")},
+        notes="a & b",
     )
     doc = build_report([entry], title="T <i>", author="Eng & Co")
     html_text = render_html(doc)
@@ -78,7 +89,11 @@ def test_report_html_content_and_escaping(tmp_path):
 
 
 def test_report_with_uncertainty_column():
-    m = {"feed_mass": Measurement(1000, "t", 5), "feed_grade": Measurement(2.5, "%", 0.05), "recovery": Measurement(92, "%")}
+    m = {
+        "feed_mass": Measurement(1000, "t", 5),
+        "feed_grade": Measurement(2.5, "%", 0.05),
+        "recovery": Measurement(92, "%"),
+    }
     u = propagate_model("mass_balance.recovery", m)
     doc = build_report([ReportEntry("S", u.nominal, uncertain=u)], include_charts=False)
     assert "Standard uncertainty" in render_html(doc)
@@ -93,7 +108,9 @@ def test_report_needs_entries_and_charts_are_inline_svg():
 
 def test_report_pdf(tmp_path):
     pytest.importorskip("matplotlib")
-    out = write_pdf(tmp_path / "r.pdf", build_report([ReportEntry("S", _run())], include_charts=False))
+    out = write_pdf(
+        tmp_path / "r.pdf", build_report([ReportEntry("S", _run())], include_charts=False)
+    )
     assert out.read_bytes().startswith(b"%PDF")
 
 
@@ -146,7 +163,7 @@ def test_project_blocks_path_traversal(tmp_path):
 
 
 def test_project_rejects_newer_or_malformed_index(tmp_path):
-    p = Project.create(tmp_path / "p", "A")
+    Project.create(tmp_path / "p", "A")
     index = tmp_path / "p" / "project.json"
     data = json.loads(index.read_text(encoding="utf-8"))
     data["format_version"] = 99
@@ -174,11 +191,18 @@ def test_project_history_is_sqlite_and_logs_events(tmp_path):
     p = Project.create(tmp_path / "p", "A")
     p.log_event("export_report", "r.html")
     with sqlite3.connect(tmp_path / "p" / "history.sqlite") as db:
-        assert db.execute("SELECT COUNT(*) FROM events WHERE action='export_report'").fetchone()[0] == 1
+        assert (
+            db.execute("SELECT COUNT(*) FROM events WHERE action='export_report'").fetchone()[0]
+            == 1
+        )
 
 
 def test_project_stores_uncertainty_with_calculation(tmp_path):
-    m = {"feed_mass": Measurement(1000, "t", 5), "feed_grade": Measurement(2.5, "%"), "recovery": Measurement(92, "%")}
+    m = {
+        "feed_mass": Measurement(1000, "t", 5),
+        "feed_grade": Measurement(2.5, "%"),
+        "recovery": Measurement(92, "%"),
+    }
     u = propagate_model("mass_balance.recovery", m)
     p = Project.create(tmp_path / "p", "A")
     e = p.add_calculation(u.nominal, "with u", uncertain=u)

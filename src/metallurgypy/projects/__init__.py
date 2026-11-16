@@ -27,9 +27,22 @@ from typing import Any
 from metallurgypy.core.exceptions import MetallurgyPyError, RecordFormatError
 from metallurgypy.core.results import CalculationResult
 from metallurgypy.precision.uncertainty import UncertainResult
-from metallurgypy.records import CalculationRecord, FILE_SUFFIX, _write_text, load_record, save_record
+from metallurgypy.records import (
+    FILE_SUFFIX,
+    CalculationRecord,
+    _write_text,
+    load_record,
+    save_record,
+)
 
-__all__ = ["Project", "ProjectEntry", "ProjectError", "HistoryEvent", "PROJECT_FORMAT", "PROJECT_VERSION"]
+__all__ = [
+    "PROJECT_FORMAT",
+    "PROJECT_VERSION",
+    "HistoryEvent",
+    "Project",
+    "ProjectEntry",
+    "ProjectError",
+]
 
 PROJECT_FORMAT = "metallurgypy.project"
 PROJECT_VERSION = 1
@@ -140,8 +153,15 @@ class Project:
         out = []
         for raw in self._meta["calculations"]:
             try:
-                out.append(ProjectEntry(int(raw["id"]), str(raw["name"]), str(raw["model_id"]),
-                                        str(raw["file"]), str(raw["saved"])))
+                out.append(
+                    ProjectEntry(
+                        int(raw["id"]),
+                        str(raw["name"]),
+                        str(raw["model_id"]),
+                        str(raw["file"]),
+                        str(raw["saved"]),
+                    )
+                )
             except (KeyError, TypeError, ValueError):
                 raise ProjectError("project.json has a malformed calculation entry.") from None
         return tuple(out)
@@ -164,12 +184,22 @@ class Project:
             if not (calc_dir / filename).exists():
                 break
             n += 1
-        save_record(calc_dir / filename, result, name=name.strip(), notes=notes, uncertainty=uncertain)
+        save_record(
+            calc_dir / filename, result, name=name.strip(), notes=notes, uncertainty=uncertain
+        )
         entry_id = int(self._meta["next_id"])
         self._meta["next_id"] = entry_id + 1
-        entry = ProjectEntry(entry_id, name.strip(), result.provenance.model_id, f"{_CALC_DIR}/{filename}", _now())
+        entry = ProjectEntry(
+            entry_id, name.strip(), result.provenance.model_id, f"{_CALC_DIR}/{filename}", _now()
+        )
         self._meta["calculations"].append(
-            {"id": entry.id, "name": entry.name, "model_id": entry.model_id, "file": entry.file, "saved": entry.saved}
+            {
+                "id": entry.id,
+                "name": entry.name,
+                "model_id": entry.model_id,
+                "file": entry.file,
+                "saved": entry.saved,
+            }
         )
         self._write_index()
         self._log("add_calculation", f"{entry.name} ({entry.model_id}) -> {entry.file}")
@@ -187,7 +217,9 @@ class Project:
     def _path_of(self, entry: ProjectEntry) -> Path:
         path = (self.root / entry.file).resolve()
         if not path.is_relative_to((self.root / _CALC_DIR).resolve()):
-            raise ProjectError(f"Entry {entry.id} points outside the calculations folder; refusing to read it.")
+            raise ProjectError(
+                f"Entry {entry.id} points outside the calculations folder; refusing to read it."
+            )
         return path
 
     def load_calculation(self, entry_id: int) -> CalculationRecord:
@@ -206,7 +238,9 @@ class Project:
     def remove_entry(self, entry_id: int) -> None:
         """Unlist a calculation. The file stays on disk; delete it yourself if you want it gone."""
         entry = self._entry(entry_id)
-        self._meta["calculations"] = [c for c in self._meta["calculations"] if int(c["id"]) != entry_id]
+        self._meta["calculations"] = [
+            c for c in self._meta["calculations"] if int(c["id"]) != entry_id
+        ]
         self._write_index()
         self._log("remove_entry", f"{entry.name} ({entry.file}) unlisted; file kept")
 
@@ -229,7 +263,10 @@ class Project:
                     "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     "timestamp TEXT NOT NULL, action TEXT NOT NULL, detail TEXT NOT NULL)"
                 )
-                db.execute("INSERT INTO events (timestamp, action, detail) VALUES (?, ?, ?)", (_now(), action, detail))
+                db.execute(
+                    "INSERT INTO events (timestamp, action, detail) VALUES (?, ?, ?)",
+                    (_now(), action, detail),
+                )
         finally:
             db.close()
 

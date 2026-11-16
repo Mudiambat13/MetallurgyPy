@@ -5,22 +5,6 @@
 
 Saving, reopening, verifying and exporting calculations.
 
-## `Any`
-
-```python
-class Any(*args, **kwargs)
-```
-
-Special type indicating an unconstrained type.
-
-- Any is assignable to every type.
-- Any assumed to have all methods and attributes.
-- All values are assignable to Any.
-
-Note that all the above statements are true from the point of view of
-static type checkers. At runtime, Any cannot be used with instance
-checks.
-
 ## `CalculationRecord`
 
 ```python
@@ -53,28 +37,6 @@ chart_data(self) -> ChartData | None
 
 Data for the default chart of this result, if it has one.
 
-## `Callable`
-
-```python
-class Callable()
-```
-
-## `DEFAULT_TOLERANCES`
-
-Constant of type `Tolerances`.
-
-## `FILE_SUFFIX`
-
-Constant of type `str`.
-
-## `FORMAT_NAME`
-
-Constant of type `str`.
-
-## `FORMAT_VERSION`
-
-Constant of type `int`.
-
 ## `MetallurgyPyError`
 
 ```python
@@ -82,265 +44,6 @@ class MetallurgyPyError(...)
 ```
 
 Base class of every error raised on purpose by MetallurgyPy.
-
-## `Path`
-
-```python
-class Path(*args, **kwargs)
-```
-
-PurePath subclass that can make system calls.
-
-Path represents a filesystem path but unlike PurePath, also offers
-methods to do system calls on path objects. Depending on your system,
-instantiating a Path will return either a PosixPath or a WindowsPath
-object. You can also instantiate a PosixPath or WindowsPath directly,
-but cannot instantiate a WindowsPath on a POSIX system or vice versa.
-
-### `Path.as_uri`
-
-```python
-as_uri(self)
-```
-
-Return the path as a URI.
-
-### `Path.stat`
-
-```python
-stat(self, *, follow_symlinks=True)
-```
-
-Return the result of the stat() system call on this path, like
-os.stat() does.
-
-### `Path.is_mount`
-
-```python
-is_mount(self)
-```
-
-Check if this path is a mount point
-
-### `Path.is_junction`
-
-```python
-is_junction(self)
-```
-
-Whether this path is a junction.
-
-### `Path.open`
-
-```python
-open(self, mode='r', buffering=-1, encoding=None, errors=None, newline=None)
-```
-
-Open the file pointed to by this path and return a file object, as
-the built-in open() function does.
-
-### `Path.read_text`
-
-```python
-read_text(self, encoding=None, errors=None, newline=None)
-```
-
-Open the file in text mode, read it, and close the file.
-
-### `Path.write_text`
-
-```python
-write_text(self, data, encoding=None, errors=None, newline=None)
-```
-
-Open the file in text mode, write to it, and close the file.
-
-### `Path.iterdir`
-
-```python
-iterdir(self)
-```
-
-Yield path objects of the directory contents.
-
-The children are yielded in arbitrary order, and the
-special entries '.' and '..' are not included.
-
-### `Path.glob`
-
-```python
-glob(self, pattern, *, case_sensitive=None, recurse_symlinks=False)
-```
-
-Iterate over this subtree and yield all existing files (of any
-kind, including directories) matching the given relative pattern.
-
-### `Path.rglob`
-
-```python
-rglob(self, pattern, *, case_sensitive=None, recurse_symlinks=False)
-```
-
-Recursively yield all existing files (of any kind, including
-directories) matching the given relative pattern, anywhere in
-this subtree.
-
-### `Path.walk`
-
-```python
-walk(self, top_down=True, on_error=None, follow_symlinks=False)
-```
-
-Walk the directory tree from this directory, similar to os.walk().
-
-### `Path.absolute`
-
-```python
-absolute(self)
-```
-
-Return an absolute version of this path
-No normalization or symlink resolution is performed.
-
-Use resolve() to resolve symlinks and remove '..' segments.
-
-### `Path.resolve`
-
-```python
-resolve(self, strict=False)
-```
-
-Make the path absolute, resolving all symlinks on the way and also
-normalizing it.
-
-### `Path.owner`
-
-```python
-owner(self, *, follow_symlinks=True)
-```
-
-Return the login name of the file owner.
-
-### `Path.group`
-
-```python
-group(self, *, follow_symlinks=True)
-```
-
-Return the group name of the file gid.
-
-### `Path.readlink`
-
-```python
-readlink(self)
-```
-
-Return the path to which the symbolic link points.
-
-### `Path.touch`
-
-```python
-touch(self, mode=438, exist_ok=True)
-```
-
-Create this file with the given access mode, if it doesn't exist.
-
-### `Path.mkdir`
-
-```python
-mkdir(self, mode=511, parents=False, exist_ok=False)
-```
-
-Create a new directory at this given path.
-
-### `Path.chmod`
-
-```python
-chmod(self, mode, *, follow_symlinks=True)
-```
-
-Change the permissions of the path, like os.chmod().
-
-### `Path.unlink`
-
-```python
-unlink(self, missing_ok=False)
-```
-
-Remove this file or link.
-If the path is a directory, use rmdir() instead.
-
-### `Path.rmdir`
-
-```python
-rmdir(self)
-```
-
-Remove this directory.  The directory must be empty.
-
-### `Path.rename`
-
-```python
-rename(self, target)
-```
-
-Rename this path to the target path.
-
-The target path may be absolute or relative. Relative paths are
-interpreted relative to the current working directory, *not* the
-directory of the Path object.
-
-Returns the new Path instance pointing to the target path.
-
-### `Path.replace`
-
-```python
-replace(self, target)
-```
-
-Rename this path to the target path, overwriting if that path exists.
-
-The target path may be absolute or relative. Relative paths are
-interpreted relative to the current working directory, *not* the
-directory of the Path object.
-
-Returns the new Path instance pointing to the target path.
-
-### `Path.symlink_to`
-
-```python
-symlink_to(self, target, target_is_directory=False)
-```
-
-Make this path a symlink pointing to the target path.
-Note the order of arguments (link, target) is the reverse of os.symlink.
-
-### `Path.hardlink_to`
-
-```python
-hardlink_to(self, target)
-```
-
-Make this path a hard link pointing to the same file as *target*.
-
-Note the order of arguments (self, target) is the reverse of os.link's.
-
-### `Path.expanduser`
-
-```python
-expanduser(self)
-```
-
-Return a new path with expanded ~ and ~user constructs
-(as returned by os.path.expanduser)
-
-### `Path.from_uri`
-
-```python
-from_uri(cls, uri)
-```
-
-Return a new path from the given 'file' URI.
 
 ## `Quantity`
 
@@ -366,10 +69,6 @@ class RecordFormatError(...)
 
 A saved calculation file is malformed or uses an unsupported format version.
 
-## `TYPE_CHECKING`
-
-Constant of type `bool`.
-
 ## `Tolerances`
 
 ```python
@@ -392,10 +91,6 @@ isclose(self, a: float, b: float) -> bool
 
 True if ``a`` and ``b`` agree within the relative or absolute tolerance.
 
-## `annotations`
-
-Constant of type `_Feature`.
-
 ## `csv_safe`
 
 ```python
@@ -407,25 +102,6 @@ Neutralise spreadsheet formula injection in a *text* cell.
 A cell that starts with ``= + - @`` (or a tab/CR) can be run as a formula when the CSV is
 opened in a spreadsheet. Such text gets a leading apostrophe, unless it is just a number.
 Never apply it to numeric cells.
-
-## `dataclass`
-
-```python
-dataclass(cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
-```
-
-Add dunder methods based on the fields defined in the class.
-
-Examines PEP 526 __annotations__ to determine fields.
-
-If init is true, an __init__() method is added to the class. If repr
-is true, a __repr__() method is added. If order is true, rich
-comparison dunder methods are added. If unsafe_hash is true, a
-__hash__() method is added. If frozen is true, fields may not be
-assigned to after instance creation. If match_args is true, the
-__match_args__ tuple is added. If kw_only is true, then by default
-all fields are keyword-only. If slots is true, a new class with a
-__slots__ attribute is returned.
 
 ## `export_result_csv`
 

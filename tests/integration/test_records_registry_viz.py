@@ -63,9 +63,9 @@ def test_spec_run_reports_missing_and_unknown_inputs():
 
 
 def test_save_and_reopen_keeps_exact_values_and_reproduces(tmp_path, result):
-    path = save_record(tmp_path / "calc.mpy.json", result, name="Test", notes="é – note")
+    path = save_record(tmp_path / "calc.mpy.json", result, name="Test", notes="é \u2013 note")
     record = load_record(path)
-    assert record.name == "Test" and record.notes == "é – note"
+    assert record.name == "Test" and record.notes == "é \u2013 note"
     assert record.model_id == "mass_balance.recovery"
     assert record.inputs == dict(result.provenance.inputs)
     for stored, item in zip(record.result["outputs"], result.outputs(), strict=True):
@@ -85,7 +85,9 @@ def test_verify_detects_a_tampered_value(tmp_path, result):
 
 
 def test_two_product_record_round_trip(tmp_path):
-    res = TwoProductBalance(1000, Quantity(2, "%"), Quantity(20, "%"), Quantity(0.4, "%")).calculate()
+    res = TwoProductBalance(
+        1000, Quantity(2, "%"), Quantity(20, "%"), Quantity(0.4, "%")
+    ).calculate()
     assert verify(load_record(save_record(tmp_path / "t.mpy.json", res))) == []
 
 
@@ -106,7 +108,10 @@ def test_save_refuses_to_overwrite_unless_asked(tmp_path, result):
         (json.dumps({"format": "other"}), "not a MetallurgyPy"),
         (json.dumps({"format": FORMAT_NAME, "format_version": 99}), "newer"),
         (json.dumps({"format": FORMAT_NAME, "format_version": 0}), "positive integer"),
-        (json.dumps({"format": FORMAT_NAME, "format_version": 1, "model_id": "", "result": {}}), "model_id"),
+        (
+            json.dumps({"format": FORMAT_NAME, "format_version": 1, "model_id": "", "result": {}}),
+            "model_id",
+        ),
         (
             json.dumps(
                 {

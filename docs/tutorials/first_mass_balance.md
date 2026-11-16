@@ -21,13 +21,13 @@ Feed of 1000 mass units at 2.5 % metal, with 92 % recovery:
 from metallurgypy.mass_balance import MassBalance
 
 result = MassBalance(
-    feed_mass=1000,      # tonnes
-    feed_grade=0.025,    # mass fraction
-    recovery=0.92,       # fraction
+    feed_mass=1000,  # tonnes
+    feed_grade=0.025,  # mass fraction
+    recovery=0.92,  # fraction
 ).calculate()
 
-print(result.metal_recovered)   # 23.0 t
-print(result.metal_remaining)   # 2.0 t
+print(result.metal_recovered)  # 23.0 t
+print(result.metal_remaining)  # 2.0 t
 ```
 
 The result should match the hand calculation. If it does not, that is a bug to report.

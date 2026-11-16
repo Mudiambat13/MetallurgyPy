@@ -29,7 +29,15 @@ from metallurgypy.precision.uncertainty import UncertainResult
 from metallurgypy.records import _write_text
 from metallurgypy.version import __version__
 
-__all__ = ["ReportEntry", "Block", "ReportDocument", "build_report", "render_html", "write_html", "write_pdf"]
+__all__ = [
+    "Block",
+    "ReportDocument",
+    "ReportEntry",
+    "build_report",
+    "render_html",
+    "write_html",
+    "write_pdf",
+]
 
 DISCLAIMER = (
     "These results come from simplified models documented in MetallurgyPy. They are not a validated "
@@ -129,15 +137,24 @@ def build_report(
         header = ("Output", "Value", "Unit", "Kind") + (("Standard uncertainty",) if u else ())
         rows = []
         for o in r.outputs():
-            row: tuple[str, ...] = (o.label, _num(o.quantity.value), o.quantity.unit, _KIND_TEXT.get(o.kind, o.kind))
+            row: tuple[str, ...] = (
+                o.label,
+                _num(o.quantity.value),
+                o.quantity.unit,
+                _KIND_TEXT.get(o.kind, o.kind),
+            )
             if u:
                 out_u = u.outputs.get(o.name)
                 su = out_u.standard_uncertainty if out_u else 0.0
-                row += (format_with_uncertainty(o.quantity.value, su) if su > 0.0 else "exact input",)
+                row += (
+                    format_with_uncertainty(o.quantity.value, su) if su > 0.0 else "exact input",
+                )
             rows.append(row)
         blocks.append(Block("table", "Results", header=header, rows=tuple(rows)))
         if u:
-            blocks.append(Block("p", f"Uncertainty method: {u.method}. Standard uncertainties (k = 1)."))
+            blocks.append(
+                Block("p", f"Uncertainty method: {u.method}. Standard uncertainties (k = 1).")
+            )
         if entry.observations:
             blocks.append(
                 Block(
@@ -189,21 +206,29 @@ def render_html(document: ReportDocument) -> str:
             out.append("<ul>" + "".join(f"<li>{e(i)}</li>" for i in b.items) + "</ul>")
         elif b.kind == "table":
             head = "".join(f"<th>{e(h)}</th>" for h in b.header)
-            body = "".join("<tr>" + "".join(f"<td>{e(c)}</td>" for c in r) + "</tr>" for r in b.rows)
-            out.append(f"<table><caption>{e(b.text)}</caption><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>")
+            body = "".join(
+                "<tr>" + "".join(f"<td>{e(c)}</td>" for c in r) + "</tr>" for r in b.rows
+            )
+            out.append(
+                f"<table><caption>{e(b.text)}</caption><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+            )
         elif b.kind == "svg":
             out.append(f'<div class="chart">{b.text}</div>')
     out.append("</body></html>")
     return "\n".join(out) + "\n"
 
 
-def write_html(path: str | os.PathLike[str], document: ReportDocument, *, overwrite: bool = False) -> Path:
+def write_html(
+    path: str | os.PathLike[str], document: ReportDocument, *, overwrite: bool = False
+) -> Path:
     target = Path(path)
     _write_text(target, render_html(document), overwrite=overwrite)
     return target
 
 
-def write_pdf(path: str | os.PathLike[str], document: ReportDocument, *, overwrite: bool = False) -> Path:
+def write_pdf(
+    path: str | os.PathLike[str], document: ReportDocument, *, overwrite: bool = False
+) -> Path:
     """Plain PDF (text and tables as text) through Matplotlib. Charts are in the HTML report."""
     target = Path(path)
     if target.exists() and not overwrite:
@@ -212,11 +237,18 @@ def write_pdf(path: str | os.PathLike[str], document: ReportDocument, *, overwri
         from matplotlib.backends.backend_pdf import PdfPages
         from matplotlib.figure import Figure
     except ImportError:
-        raise ImportError('PDF reports need Matplotlib: pip install "metallurgypy[visualization]"') from None
+        raise ImportError(
+            'PDF reports need Matplotlib: pip install "metallurgypy[visualization]"'
+        ) from None
 
     lines: list[tuple[str, str]] = [("h1", document.title)]
-    lines.append(("p", f"{document.author + ' - ' if document.author else ''}Generated {document.generated} "
-                       f"with MetallurgyPy {__version__}"))
+    lines.append(
+        (
+            "p",
+            f"{document.author + ' - ' if document.author else ''}Generated {document.generated} "
+            f"with MetallurgyPy {__version__}",
+        )
+    )
     for b in document.blocks:
         if b.kind in ("h2", "h3"):
             lines += [("", ""), (b.kind, b.text)]
@@ -224,7 +256,9 @@ def write_pdf(path: str | os.PathLike[str], document: ReportDocument, *, overwri
             lines += [("p", ln) for ln in textwrap.wrap(b.text, 95)]
         elif b.kind == "ul":
             for item in b.items:
-                lines += [("p", ln) for ln in textwrap.wrap("- " + item, 95, subsequent_indent="  ")]
+                lines += [
+                    ("p", ln) for ln in textwrap.wrap("- " + item, 95, subsequent_indent="  ")
+                ]
         elif b.kind == "table":
             lines += [("h3", b.text), ("m", "  ".join(b.header))]
             lines += [("m", "  ".join(r)) for r in b.rows]
@@ -237,8 +271,15 @@ def write_pdf(path: str | os.PathLike[str], document: ReportDocument, *, overwri
             y = 0.97
             for kind, text in page:
                 size = {"h1": 15, "h2": 12, "h3": 10.5}.get(kind, 8.5)
-                fig.text(0.07, y, text[:140], fontsize=size, family="monospace" if kind == "m" else "sans-serif",
-                         fontweight="bold" if kind in ("h1", "h2", "h3") else "normal", va="top")
+                fig.text(
+                    0.07,
+                    y,
+                    text[:140],
+                    fontsize=size,
+                    family="monospace" if kind == "m" else "sans-serif",
+                    fontweight="bold" if kind in ("h1", "h2", "h3") else "normal",
+                    va="top",
+                )
                 y -= 0.0165
             pdf.savefig(fig)
     return target

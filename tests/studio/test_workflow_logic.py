@@ -25,12 +25,19 @@ def pvm(ws):
 
 def test_import_flow_with_rejected_rows(tmp_path):
     f = tmp_path / "d.csv"
-    f.write_text("sample,mass [t],grade [%],rec [%]\nA,1000,2.5,92\nC,900,2.1,90\nD,800,2.0,91\nE,700,1.9,89\nF,600,1.7,88\nB,x,1,50\n", encoding="utf-8")
+    f.write_text(
+        "sample,mass [t],grade [%],rec [%]\nA,1000,2.5,92\nC,900,2.1,90\nD,800,2.0,91\nE,700,1.9,89\nF,600,1.7,88\nB,x,1,50\n",
+        encoding="utf-8",
+    )
     ivm = ImportViewModel(DataService(), ["mass_balance.recovery"])
     assert ivm.load(f)
     by = {c.info.name: c for c in ivm.choices}
     assert by["mass [t]"].use and by["mass [t]"].unit == "t" and not by["sample"].use
-    for col, name in (("mass [t]", "feed_mass"), ("grade [%]", "feed_grade"), ("rec [%]", "recovery")):
+    for col, name in (
+        ("mass [t]", "feed_mass"),
+        ("grade [%]", "feed_grade"),
+        ("rec [%]", "recovery"),
+    ):
         by[col].name = name
     assert ivm.validate()
     assert "5 valid row(s), 1 rejected" in ivm.summary()
@@ -76,7 +83,6 @@ def test_project_errors_are_messages_not_exceptions(pvm, tmp_path):
 
 
 def test_add_with_uncertainty_keeps_it(ws, pvm, tmp_path):
-    from metallurgypy_studio.services.calculation_service import FieldInput
 
     ws.set_field("feed_mass", uncertainty="5")
     ws.calculate()

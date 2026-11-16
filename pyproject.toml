@@ -82,3 +82,5 @@ src = ["src", "studio", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+# Line layout is owned by `ruff format`; long prose strings (equations, messages) are fine.
+ignore = ["E501"]

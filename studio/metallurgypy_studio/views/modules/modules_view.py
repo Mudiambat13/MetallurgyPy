@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from PySide6.QtCore import QUrl, Signal
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 
 from metallurgypy_studio import DOCS_URL
 from metallurgypy_studio.services.calculation_service import ModuleOverview
@@ -41,7 +49,9 @@ class ModulesView(QWidget):
                 buttons.addWidget(open_button)
             docs = QPushButton("Documentation")
             docs.clicked.connect(
-                lambda _=False, page=module.info.doc_page: QDesktopServices.openUrl(QUrl(DOCS_URL + page))
+                lambda _=False, page=module.info.doc_page: QDesktopServices.openUrl(
+                    QUrl(DOCS_URL + page)
+                )
             )
             buttons.addWidget(docs)
             buttons.addStretch(1)

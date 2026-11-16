@@ -26,7 +26,7 @@ def format_number(value: float, digits: int) -> str:
     magnitude = abs(value)
     text = f"{value:.{digits}g}"
     if "e" in text and 1e-4 <= magnitude < 1e12:
-        decimals = max(digits - int(math.floor(math.log10(magnitude))) - 1, 0)
+        decimals = max(digits - math.floor(math.log10(magnitude)) - 1, 0)
         text = f"{value:.{decimals}f}"
     return text
 
@@ -60,7 +60,11 @@ class AppSettings:
         if data.get("theme") in THEMES:
             settings.theme = data["theme"]
         digits = data.get("display_digits")
-        if isinstance(digits, int) and not isinstance(digits, bool) and MIN_DIGITS <= digits <= MAX_DIGITS:
+        if (
+            isinstance(digits, int)
+            and not isinstance(digits, bool)
+            and MIN_DIGITS <= digits <= MAX_DIGITS
+        ):
             settings.display_digits = digits
         if isinstance(data.get("default_folder"), str):
             settings.default_folder = data["default_folder"]

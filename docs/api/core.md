@@ -16,8 +16,12 @@ A calculation could not be completed (for example a degenerate case).
 ## `CalculationMode`
 
 ```python
-class CalculationMode(*values)
+class CalculationMode(enum.Enum)
 ```
+
+- `CalculationMode.STANDARD` = `'standard'`
+- `CalculationMode.HIGH_PRECISION` = `'high_precision'`
+- `CalculationMode.UNCERTAINTY_AWARE` = `'uncertainty_aware'`
 
 ## `CalculationResult`
 

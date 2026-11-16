@@ -6,8 +6,12 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-PAGES = ["docs/tutorials/uncertainty.md", "docs/tutorials/first_mass_balance.md", "docs/guides/workflows.md",
-         "docs/scientific_methods/statistics.md"]
+PAGES = [
+    "docs/tutorials/uncertainty.md",
+    "docs/tutorials/first_mass_balance.md",
+    "docs/guides/workflows.md",
+    "docs/scientific_methods/statistics.md",
+]
 FENCE = re.compile(r"```python\n(.*?)```", re.S)
 
 
@@ -31,8 +35,11 @@ def test_generated_model_pages_are_up_to_date():
     import subprocess
     import sys
 
-    done = subprocess.run([sys.executable, str(ROOT / "tools" / "gen_model_reference.py"), "--check"],
-                          capture_output=True, text=True)
+    done = subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "gen_model_reference.py"), "--check"],
+        capture_output=True,
+        text=True,
+    )
     assert done.returncode == 0, done.stdout + done.stderr
 
 
@@ -42,6 +49,8 @@ def test_generated_api_pages_are_up_to_date():
 
     done = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "gen_api_reference.py"), "--check"],
-        capture_output=True, text=True, cwd=ROOT,
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
     )
     assert done.returncode == 0, done.stdout + done.stderr

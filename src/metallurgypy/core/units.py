@@ -83,7 +83,8 @@ for _group in (
     _u("area", cm2=(1, 10**4), m2=(1, 1)),
     _u(
         "dimensionless",
-        fraction=(1, 1), ratio=(1, 1),
+        fraction=(1, 1),
+        ratio=(1, 1),
     ),
     _u("amount", mol=(1, 1), kmol=(1000, 1)),
     _u("molar_mass", **{"g/mol": (1, 1), "kg/kmol": (1, 1)}),
@@ -95,7 +96,10 @@ for _group in (
     _u("energy", J=(1, 1), kJ=(1000, 1), kWh=(3_600_000, 1)),
     _u("power", W=(1, 1), kW=(1000, 1)),
     _u("pressure", Pa=(1, 1), kPa=(1000, 1), bar=(100_000, 1)),
-    _u("mass_flow", **{"kg/s": (1, 1), "kg/h": (1, 3600), "t/h": (1000, 3600), "t/d": (1000, 86400)}),
+    _u(
+        "mass_flow",
+        **{"kg/s": (1, 1), "kg/h": (1, 3600), "t/h": (1000, 3600), "t/d": (1000, 86400)},
+    ),
     _u("volume_flow", **{"m3/s": (1, 1), "m3/h": (1, 3600), "L/min": (1, 60000)}),
     _u("rate", **{"1/s": (1, 1), "1/min": (1, 60), "1/h": (1, 3600), "1/d": (1, 86400)}),
     _u("viscosity", **{"Pa.s": (1, 1), "mPa.s": (1, 1000)}),
@@ -177,7 +181,9 @@ def convert_exact(value: float, from_unit: str, to_unit: str) -> Fraction:
             f"Cannot convert {from_unit!r} ({src.dimension}) to {to_unit!r} ({dst.dimension})."
         )
     if src.offset or dst.offset:
-        raise UnitConversionError("Exact conversion is not available for temperature scales with an offset.")
+        raise UnitConversionError(
+            "Exact conversion is not available for temperature scales with an offset."
+        )
     return Fraction(value) * Fraction(src.num * dst.den, src.den * dst.num)
 
 

@@ -12,8 +12,18 @@ register_class(
     title="Solution dilution",
     description="Stock and diluent volumes to prepare a solution of a given mass concentration.",
     parameters=(
-        param("stock_concentration", "Stock concentration", "Mass concentration of the stock solution.", "g/L"),
-        param("target_concentration", "Target concentration", "Mass concentration wanted (not above the stock).", "g/L"),
+        param(
+            "stock_concentration",
+            "Stock concentration",
+            "Mass concentration of the stock solution.",
+            "g/L",
+        ),
+        param(
+            "target_concentration",
+            "Target concentration",
+            "Mass concentration wanted (not above the stock).",
+            "g/L",
+        ),
         param("final_volume", "Final volume", "Volume of solution to prepare.", "L"),
     ),
     example={
@@ -29,7 +39,12 @@ register_class(
     title="Mass to molar concentration",
     description="Molar concentration from a mass concentration and the molar mass of the species.",
     parameters=(
-        param("mass_concentration", "Mass concentration", "Mass of species per volume of solution.", "g/L"),
+        param(
+            "mass_concentration",
+            "Mass concentration",
+            "Mass of species per volume of solution.",
+            "g/L",
+        ),
         param("molar_mass", "Molar mass", "Molar mass of that species.", "g/mol"),
     ),
     example={"mass_concentration": Quantity(40.0, "g/L"), "molar_mass": Quantity(40.0, "g/mol")},
@@ -42,9 +57,26 @@ register_class(
     description="Hourly, daily and campaign consumption from a dosage per tonne of ore.",
     parameters=(
         param("ore_throughput", "Ore throughput", "Ore treated per unit time.", "t/h"),
-        param("dosage", "Dosage (active reagent)", "Active reagent mass per mass of ore.", "kg/t", ("kg/t", "g/t", "%")),
-        param("purity", "Purity of the product", "Active share of the commercial product.", "%", ("fraction", "%")),
-        param("operating_hours_per_day", "Operating hours per day", "Hours of operation per day (at most 24).", "h"),
+        param(
+            "dosage",
+            "Dosage (active reagent)",
+            "Active reagent mass per mass of ore.",
+            "kg/t",
+            ("kg/t", "g/t", "%"),
+        ),
+        param(
+            "purity",
+            "Purity of the product",
+            "Active share of the commercial product.",
+            "%",
+            ("fraction", "%"),
+        ),
+        param(
+            "operating_hours_per_day",
+            "Operating hours per day",
+            "Hours of operation per day (at most 24).",
+            "h",
+        ),
         param("campaign_duration", "Campaign duration", "Length of the campaign.", "d"),
     ),
     example={

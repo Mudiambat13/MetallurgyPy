@@ -28,10 +28,10 @@ A result printed with 12 decimals is not necessarily accurate: the inputs may be
 ```python
 from metallurgypy.precision import Measurement
 
-m1 = Measurement(2.5, "%", 0.05)                                # standard uncertainty
+m1 = Measurement(2.5, "%", 0.05)  # standard uncertainty
 m2 = Measurement(2.5, "%", 0.1, kind="expanded", coverage_factor=2.0)
-m3 = Measurement(10.0, "g/L", 0.2, kind="rectangular")          # half-width of the interval
-m4 = Measurement.from_replicates([2.48, 2.52, 2.51], "%")       # Type A: s / sqrt(n)
+m3 = Measurement(10.0, "g/L", 0.2, kind="rectangular")  # half-width of the interval
+m4 = Measurement.from_replicates([2.48, 2.52, 2.51], "%")  # Type A: s / sqrt(n)
 ```
 
 `kind` is one of `standard`, `expanded` (needs `coverage_factor`), `rectangular` (\(u = a/\sqrt{3}\)) and `triangular` (\(u = a/\sqrt{6}\)). Everything is converted to a standard uncertainty, in the unit of the value.

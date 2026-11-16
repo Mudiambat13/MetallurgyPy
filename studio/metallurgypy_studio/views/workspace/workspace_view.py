@@ -31,7 +31,13 @@ from PySide6.QtWidgets import (
 
 from metallurgypy_studio import DOCS_URL
 from metallurgypy_studio.services.calculation_service import CalculationService, RunOutcome
-from metallurgypy_studio.viewmodels.workspace_viewmodel import ERROR, IDLE, OK, RUNNING, WorkspaceViewModel
+from metallurgypy_studio.viewmodels.workspace_viewmodel import (
+    ERROR,
+    IDLE,
+    OK,
+    RUNNING,
+    WorkspaceViewModel,
+)
 from metallurgypy_studio.widgets.chart_widget import ChartWidget
 from metallurgypy_studio.workers.calc_worker import CalcWorker
 
@@ -101,7 +107,9 @@ class WorkspaceView(QWidget):
         left_layout.addStretch(1)
 
         self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(["Quantity", "Value", "Unit", "Kind", "Std. uncertainty"])
+        self.table.setHorizontalHeaderLabels(
+            ["Quantity", "Value", "Unit", "Kind", "Std. uncertainty"]
+        )
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSortingEnabled(False)
@@ -151,8 +159,12 @@ class WorkspaceView(QWidget):
         self.svg_button.clicked.connect(lambda: self._on_chart_export(".svg"))
         actions = QHBoxLayout()
         for button in (
-            self.save_button, self.open_button, self.csv_button, self.json_button,
-            self.png_button, self.svg_button,
+            self.save_button,
+            self.open_button,
+            self.csv_button,
+            self.json_button,
+            self.png_button,
+            self.svg_button,
         ):
             actions.addWidget(button)
         right = QWidget()
@@ -187,7 +199,9 @@ class WorkspaceView(QWidget):
             edit.textChanged.connect(lambda text, n=param.name: self.vm.set_field(n, text=text))
             unit_box = QComboBox()
             unit_box.addItems(param.units)
-            unit_box.currentTextChanged.connect(lambda unit, n=param.name: self.vm.set_field(n, unit=unit))
+            unit_box.currentTextChanged.connect(
+                lambda unit, n=param.name: self.vm.set_field(n, unit=unit)
+            )
             error = QLabel()
             error.setObjectName("ErrorText")
             error.setWordWrap(True)
@@ -199,7 +213,9 @@ class WorkspaceView(QWidget):
             )
             u_edit.setAccessibleName(f"{param.label} standard uncertainty")
             u_edit.setMaximumWidth(120)
-            u_edit.textChanged.connect(lambda text, n=param.name: self.vm.set_field(n, uncertainty=text))
+            u_edit.textChanged.connect(
+                lambda text, n=param.name: self.vm.set_field(n, uncertainty=text)
+            )
             row = QHBoxLayout()
             row.addWidget(edit, 1)
             row.addWidget(unit_box)
@@ -240,7 +256,7 @@ class WorkspaceView(QWidget):
             self.model_box.blockSignals(False)
         if set(self._edits) != {p.name for p in vm.spec.parameters}:
             self._rebuild_form()
-        elif vm.status in (IDLE, OK) and vm.result is None or vm.last_saved is not None:
+        elif (vm.status in (IDLE, OK) and vm.result is None) or vm.last_saved is not None:
             self._sync_form_from_vm()
 
         for name, edit in self._edits.items():
@@ -259,7 +275,13 @@ class WorkspaceView(QWidget):
         self.calc_button.setText("Calculating…" if busy else "Calculate")
 
         has_result = vm.result is not None
-        for button in (self.save_button, self.csv_button, self.json_button, self.png_button, self.svg_button):
+        for button in (
+            self.save_button,
+            self.csv_button,
+            self.json_button,
+            self.png_button,
+            self.svg_button,
+        ):
             button.setEnabled(has_result)
 
         rows = vm.rows()
@@ -277,7 +299,8 @@ class WorkspaceView(QWidget):
         self.warnings_label.setVisible(bool(warnings))
         if vm.differences:
             self.verify_label.setText(
-                "This saved result does NOT match a fresh calculation:\n• " + "\n• ".join(vm.differences)
+                "This saved result does NOT match a fresh calculation:\n• "
+                + "\n• ".join(vm.differences)
             )
         elif vm.last_saved is not None and has_result:
             self.verify_label.setText("Saved result reproduced by the installed model.")
@@ -287,9 +310,7 @@ class WorkspaceView(QWidget):
         self.assumptions.setPlainText("\n".join(f"• {a}" for a in vm.assumptions))
         self.details.setPlainText(vm.details_text())
         self.chart.set_chart(vm.result.chart_data() if vm.result else None)
-        for edit, text, setter in (
-            (self.name_edit, vm.name, self.name_edit.setText),
-        ):
+        for edit, text, setter in ((self.name_edit, vm.name, self.name_edit.setText),):
             if edit.text() != text:
                 edit.blockSignals(True)
                 setter(text)
@@ -299,7 +320,12 @@ class WorkspaceView(QWidget):
             self.notes_edit.setPlainText(vm.notes)
             self.notes_edit.blockSignals(False)
         self.status_changed.emit(
-            {IDLE: "Ready", RUNNING: "Calculating…", OK: "Calculation complete", ERROR: "Input error"}[vm.status]
+            {
+                IDLE: "Ready",
+                RUNNING: "Calculating…",
+                OK: "Calculation complete",
+                ERROR: "Input error",
+            }[vm.status]
         )
 
     # ------------------------------ actions --------------------------------- #
@@ -345,7 +371,10 @@ class WorkspaceView(QWidget):
 
     def _on_save(self) -> None:
         path, _ = QFileDialog.getSaveFileName(
-            self, "Save calculation", self._suggested(".mpy.json"), "MetallurgyPy calculation (*.mpy.json)"
+            self,
+            "Save calculation",
+            self._suggested(".mpy.json"),
+            "MetallurgyPy calculation (*.mpy.json)",
         )
         if path:
             if not path.endswith(".mpy.json"):
@@ -354,7 +383,10 @@ class WorkspaceView(QWidget):
 
     def _on_export(self, kind: str) -> None:
         path, _ = QFileDialog.getSaveFileName(
-            self, f"Export {kind.upper()}", self._suggested("." + kind), f"{kind.upper()} (*.{kind})"
+            self,
+            f"Export {kind.upper()}",
+            self._suggested("." + kind),
+            f"{kind.upper()} (*.{kind})",
         )
         if path:
             action = self.vm.export_csv if kind == "csv" else self.vm.export_json
@@ -374,11 +406,15 @@ class WorkspaceView(QWidget):
         except ImportError as exc:
             QMessageBox.warning(self, "Chart export unavailable", str(exc))
             return
-        self._run_file_action(lambda p, overwrite: save_chart(chart, p, overwrite=overwrite), path, "Chart exported.")
+        self._run_file_action(
+            lambda p, overwrite: save_chart(chart, p, overwrite=overwrite), path, "Chart exported."
+        )
 
     def _on_open(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
-            self, "Open calculation", self.vm._state.settings.default_folder or str(Path.home()),
+            self,
+            "Open calculation",
+            self.vm._state.settings.default_folder or str(Path.home()),
             "MetallurgyPy calculation (*.mpy.json);;All files (*)",
         )
         if path:

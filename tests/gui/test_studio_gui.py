@@ -12,11 +12,11 @@ pytest.importorskip("PySide6")
 pytest.importorskip("pyqtgraph")
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication  # noqa: E402
+from PySide6.QtWidgets import QApplication
 
-from metallurgypy_studio.app import MainWindow  # noqa: E402
-from metallurgypy_studio.main import main  # noqa: E402
-from metallurgypy_studio.viewmodels.app_state import AppSettings  # noqa: E402
+from metallurgypy_studio.app import MainWindow
+from metallurgypy_studio.main import main
+from metallurgypy_studio.viewmodels.app_state import AppSettings
 
 pytestmark = pytest.mark.gui
 
@@ -74,7 +74,10 @@ def test_invalid_input_shows_error_next_to_the_field(window):
 def test_form_is_rebuilt_for_another_model(window):
     window.vm.select_model("mass_balance.two_product")
     assert set(window.workspace._edits) == {
-        "feed_mass", "feed_grade", "concentrate_grade", "tailings_grade"
+        "feed_mass",
+        "feed_grade",
+        "concentrate_grade",
+        "tailings_grade",
     }
 
 
@@ -100,7 +103,10 @@ def test_save_and_reopen_through_the_view(window, tmp_path):
 
 def test_import_view_lists_columns_and_reports_rows(window, tmp_path):
     f = tmp_path / "d.csv"
-    f.write_text("mass [t],grade [%],rec [%]\n1000,2.5,92\n900,2.1,90\n800,2.0,x\n700,1.9,89\n600,1.7,88\n", encoding="utf-8")
+    f.write_text(
+        "mass [t],grade [%],rec [%]\n1000,2.5,92\n900,2.1,90\n800,2.0,x\n700,1.9,89\n600,1.7,88\n",
+        encoding="utf-8",
+    )
     view = window.import_view
     assert window.import_vm.load(f)
     assert view.columns.rowCount() == 3

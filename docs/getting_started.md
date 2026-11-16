@@ -12,8 +12,8 @@ result = MassBalance(
     recovery=Quantity(92, "%"),
 ).calculate()
 
-print(result.metal_recovered)   # 23.0 t
-print(result.metal_remaining)   # 2.0 t
+print(result.metal_recovered)  # 23.0 t
+print(result.metal_remaining)  # 2.0 t
 ```
 
 Bare numbers also work and use documented default units (mass in tonnes, grades and recoveries as fractions between 0 and 1):
@@ -27,11 +27,11 @@ This example is also provided as a script: `examples/mass_balance/basic_balance.
 ## What a result carries
 
 ```python
-result.provenance.model_version   # '1.0'
-result.provenance.equations       # the formulas used
-result.provenance.assumptions     # the assumptions, in plain language
-result.provenance.inputs          # inputs as used, with units
-result.warnings                   # tuple of warnings (may be empty)
+result.provenance.model_version  # '1.0'
+result.provenance.equations  # the formulas used
+result.provenance.assumptions  # the assumptions, in plain language
+result.provenance.inputs  # inputs as used, with units
+result.warnings  # tuple of warnings (may be empty)
 ```
 
 Each result exposes its inputs and units, the equations, assumptions, tolerances, calculation mode, the MetallurgyPy version and a UTC timestamp. Values are stored unrounded.
@@ -52,7 +52,7 @@ from metallurgypy.records import save_record, load_record, verify, export_result
 
 save_record("balance.mpy.json", result, name="Demo", notes="illustrative data")
 record = load_record("balance.mpy.json")
-print(verify(record))            # [] means a fresh calculation reproduces the saved result
+print(verify(record))  # [] means a fresh calculation reproduces the saved result
 export_result_csv("balance.csv", result)
 ```
 

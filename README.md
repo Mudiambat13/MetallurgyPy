@@ -27,7 +27,7 @@ from metallurgypy.core import Quantity
 from metallurgypy.mass_balance import MassBalance
 
 result = MassBalance(Quantity(1000, "t"), Quantity(2.5, "%"), Quantity(92, "%")).calculate()
-print(result.metal_recovered)   # 23.0 t
+print(result.metal_recovered)  # 23.0 t
 ```
 
 ## Repository contents

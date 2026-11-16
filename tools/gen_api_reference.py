@@ -8,6 +8,7 @@ No third-party dependency: it uses ``inspect`` only, so the pages always match t
 
 from __future__ import annotations
 
+import enum
 import importlib
 import inspect
 import re
@@ -100,10 +101,25 @@ def _first_paragraph(doc: str | None) -> str:
 
 
 def _public_names(module: object) -> list[str]:
+    """Names listed in ``__all__``; without it, only classes/functions defined in this package.
+
+    Names merely imported from the standard library are skipped: their docstrings change
+    between Python versions and would make the generated pages differ from one CI job to another.
+    """
     names = getattr(module, "__all__", None)
-    if names is None:
-        names = [n for n in dir(module) if not n.startswith("_")]
-    return sorted(n for n in names if not n.startswith("_"))
+    if names is not None:
+        return sorted(n for n in names if not n.startswith("_"))
+    found = []
+    for name in dir(module):
+        if name.startswith("_"):
+            continue
+        obj = getattr(module, name)
+        owner = getattr(obj, "__module__", "") or ""
+        if (inspect.isclass(obj) or inspect.isfunction(obj)) and owner.split(".")[
+            0
+        ] == "metallurgypy":
+            found.append(name)
+    return sorted(found)
 
 
 def _members(cls: type) -> list[tuple[str, object]]:
@@ -133,13 +149,29 @@ def render_page(title: str, module_name: str) -> str:
         lines += [summary, ""]
     for name in _public_names(module):
         obj = getattr(module, name)
-        if inspect.isclass(obj):
+        if inspect.isclass(obj) and issubclass(obj, enum.Enum):
+            # The signature of an Enum differs between Python versions: list the members instead.
+            lines += [f"## `{name}`", "", "```python", f"class {name}(enum.Enum)", "```", ""]
+            doc = _clean_doc(obj.__doc__)
+            if doc:
+                lines += [doc, ""]
+            lines += [f"- `{name}.{m.name}` = `{m.value!r}`" for m in obj] + [""]
+        elif inspect.isclass(obj):
             lines += [f"## `{name}`", "", "```python", f"class {_signature(obj, name)}", "```", ""]
             doc = _clean_doc(obj.__doc__)
-            if doc and not doc.startswith(f"{name}("):  # skip the auto-generated dataclass docstring
+            if doc and not doc.startswith(
+                f"{name}("
+            ):  # skip the auto-generated dataclass docstring
                 lines += [doc, ""]
             for member, target in _members(obj):
-                lines += [f"### `{name}.{member}`", "", "```python", _signature(target, member), "```", ""]
+                lines += [
+                    f"### `{name}.{member}`",
+                    "",
+                    "```python",
+                    _signature(target, member),
+                    "```",
+                    "",
+                ]
                 lines += [_clean_doc(getattr(target, "__doc__", None)), ""]
         elif inspect.isfunction(obj):
             lines += [f"## `{name}`", "", "```python", _signature(obj, name), "```", ""]

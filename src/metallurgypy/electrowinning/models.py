@@ -48,7 +48,11 @@ class Electrowinning(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         efficiency = qty(
-            "current_efficiency", current_efficiency, unit="fraction", allowed=("fraction", "%"), fraction=True
+            "current_efficiency",
+            current_efficiency,
+            unit="fraction",
+            allowed=("fraction", "%"),
+            fraction=True,
         )
         if efficiency.to("fraction").value == 0.0:
             raise InvalidParameterError("current_efficiency must be strictly positive.")
@@ -56,7 +60,9 @@ class Electrowinning(BaseModel):
             "current": qty("current", current, unit="A", positive=True),
             "duration": qty("duration", duration, unit="h", positive=True),
             "molar_mass": qty("molar_mass", molar_mass, unit="g/mol", positive=True),
-            "electrons": qty("electrons", electrons, unit="ratio", allowed=("ratio",), positive=True),
+            "electrons": qty(
+                "electrons", electrons, unit="ratio", allowed=("ratio",), positive=True
+            ),
             "current_efficiency": efficiency,
             "cell_voltage": qty("cell_voltage", cell_voltage, unit="V", positive=True),
             "cathode_area": qty("cathode_area", cathode_area, unit="m2", positive=True),
@@ -79,9 +85,13 @@ class Electrowinning(BaseModel):
         specific = energy_kwh / (m_actual / 1000.0)  # kWh per tonne deposited
         warnings = []
         if n != int(n):
-            warnings.append(f"Electrons per species is not an integer ({n!r}): check the half-reaction.")
+            warnings.append(
+                f"Electrons per species is not an integer ({n!r}): check the half-reaction."
+            )
         if eta == 1.0:
-            warnings.append("Current efficiency is exactly 100 %: actual equals theoretical production.")
+            warnings.append(
+                "Current efficiency is exactly 100 %: actual equals theoretical production."
+            )
         chart = ChartData(
             title="Deposited mass",
             categories=("Theoretical", "Actual", "Lost to side reactions"),
@@ -93,7 +103,12 @@ class Electrowinning(BaseModel):
             [
                 out("theoretical_mass", "Theoretical deposited mass", m_theo, "kg"),
                 out("actual_mass", "Actual deposited mass (at given efficiency)", m_actual, "kg"),
-                out("production_rate", "Actual production rate", m_actual / (seconds / 3600.0), "kg/h"),
+                out(
+                    "production_rate",
+                    "Actual production rate",
+                    m_actual / (seconds / 3600.0),
+                    "kg/h",
+                ),
                 out("current_density", "Current density", current / area, "A/m2"),
                 out("energy", "Electrical energy", energy_kwh, "kWh"),
                 out("specific_energy", "Specific energy (per tonne deposited)", specific, "kWh/t"),

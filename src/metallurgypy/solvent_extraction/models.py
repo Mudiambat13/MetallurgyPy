@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 
 from metallurgypy.core.exceptions import (
     ConvergenceError,
@@ -60,8 +61,12 @@ class SingleStageExtraction(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "feed_concentration": qty("feed_concentration", feed_concentration, unit="g/L", non_negative=True),
-            "distribution_coefficient": _ratio("distribution_coefficient", distribution_coefficient),
+            "feed_concentration": qty(
+                "feed_concentration", feed_concentration, unit="g/L", non_negative=True
+            ),
+            "distribution_coefficient": _ratio(
+                "distribution_coefficient", distribution_coefficient
+            ),
             "oa_ratio": _ratio("oa_ratio", oa_ratio),
         }
 
@@ -77,7 +82,12 @@ class SingleStageExtraction(BaseModel):
             [
                 out("raffinate_concentration", "Raffinate (aqueous) concentration", c_aq, unit),
                 out("loaded_organic_concentration", "Loaded organic concentration", c_org, unit),
-                out("extraction", "Extraction (fraction of metal transferred)", d * r / (1.0 + d * r), "fraction"),
+                out(
+                    "extraction",
+                    "Extraction (fraction of metal transferred)",
+                    d * r / (1.0 + d * r),
+                    "fraction",
+                ),
                 out("ao_ratio", "A/O ratio", 1.0 / r, "ratio"),
                 out("balance_residual", "Metal balance residual", residual, unit),
             ]
@@ -112,10 +122,22 @@ class StrippingStage(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "loaded_organic_concentration": qty("loaded_organic_concentration", loaded_organic_concentration, unit="g/L", positive=True),
-            "strip_distribution_coefficient": _ratio("strip_distribution_coefficient", strip_distribution_coefficient),
+            "loaded_organic_concentration": qty(
+                "loaded_organic_concentration",
+                loaded_organic_concentration,
+                unit="g/L",
+                positive=True,
+            ),
+            "strip_distribution_coefficient": _ratio(
+                "strip_distribution_coefficient", strip_distribution_coefficient
+            ),
             "ao_ratio": _ratio("ao_ratio", ao_ratio),
-            "strip_aqueous_inlet_concentration": qty("strip_aqueous_inlet_concentration", strip_aqueous_inlet_concentration, unit="g/L", non_negative=True),
+            "strip_aqueous_inlet_concentration": qty(
+                "strip_aqueous_inlet_concentration",
+                strip_aqueous_inlet_concentration,
+                unit="g/L",
+                non_negative=True,
+            ),
         }
 
     def calculate(self) -> GenericResult:
@@ -131,8 +153,15 @@ class StrippingStage(BaseModel):
             [
                 out("strip_liquor_concentration", "Strip liquor concentration", x, unit),
                 out("stripped_organic_concentration", "Stripped organic concentration", y, unit),
-                out("stripping", "Stripping (fraction removed from organic)", (y0 - y) / y0, "fraction"),
-                out("balance_residual", "Metal balance residual", y0 + ao * x_in - y - ao * x, unit),
+                out(
+                    "stripping",
+                    "Stripping (fraction removed from organic)",
+                    (y0 - y) / y0,
+                    "fraction",
+                ),
+                out(
+                    "balance_residual", "Metal balance residual", y0 + ao * x_in - y - ao * x, unit
+                ),
             ]
         )
 
@@ -177,10 +206,16 @@ class CountercurrentExtraction(BaseModel):
         super().__init__(mode=mode, tolerances=tolerances)
         n = _ratio("stages", stages)
         if n.value != int(n.value) or n.value > 1000:
-            raise InvalidParameterError(f"stages must be a whole number between 1 and 1000, got {n.value!r}.")
+            raise InvalidParameterError(
+                f"stages must be a whole number between 1 and 1000, got {n.value!r}."
+            )
         self._inputs = {
-            "feed_concentration": qty("feed_concentration", feed_concentration, unit="g/L", non_negative=True),
-            "distribution_coefficient": _ratio("distribution_coefficient", distribution_coefficient),
+            "feed_concentration": qty(
+                "feed_concentration", feed_concentration, unit="g/L", non_negative=True
+            ),
+            "distribution_coefficient": _ratio(
+                "distribution_coefficient", distribution_coefficient
+            ),
             "oa_ratio": _ratio("oa_ratio", oa_ratio),
             "stages": n,
         }
@@ -202,7 +237,12 @@ class CountercurrentExtraction(BaseModel):
             [
                 out("extraction_factor", "Extraction factor E = D * O/A", e, "ratio"),
                 out("raffinate_concentration", "Raffinate concentration", raffinate, feed.unit),
-                out("loaded_organic_concentration", "Loaded organic concentration", loaded, feed.unit),
+                out(
+                    "loaded_organic_concentration",
+                    "Loaded organic concentration",
+                    loaded,
+                    feed.unit,
+                ),
                 out("extraction", "Extraction (fraction)", 1.0 - phi, "fraction"),
             ],
             warnings=warnings,
@@ -234,9 +274,17 @@ class StagesRequired(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "distribution_coefficient": _ratio("distribution_coefficient", distribution_coefficient),
+            "distribution_coefficient": _ratio(
+                "distribution_coefficient", distribution_coefficient
+            ),
             "oa_ratio": _ratio("oa_ratio", oa_ratio),
-            "target_extraction": qty("target_extraction", target_extraction, unit="fraction", allowed=("fraction", "%"), open_fraction=True),
+            "target_extraction": qty(
+                "target_extraction",
+                target_extraction,
+                unit="fraction",
+                allowed=("fraction", "%"),
+                open_fraction=True,
+            ),
         }
 
     def calculate(self) -> GenericResult:
@@ -255,7 +303,12 @@ class StagesRequired(BaseModel):
         return self._result(
             [
                 out("theoretical_stages", "Theoretical stages (continuous)", n, "ratio"),
-                out("stages_ceiling", "Theoretical stages (rounded up)", float(math.ceil(n - 1e-12)), "ratio"),
+                out(
+                    "stages_ceiling",
+                    "Theoretical stages (rounded up)",
+                    float(math.ceil(n - 1e-12)),
+                    "ratio",
+                ),
                 out("extraction_factor", "Extraction factor E = D * O/A", e, "ratio"),
             ]
         )
@@ -298,11 +351,13 @@ class McCabeThieleAnalysis:
         organic_in: float = 0.0,
     ) -> None:
         if len(aqueous) != len(organic) or len(aqueous) < 2:
-            raise InvalidParameterError("The isotherm needs at least two points with equal-length columns.")
+            raise InvalidParameterError(
+                "The isotherm needs at least two points with equal-length columns."
+            )
         for name, values in (("aqueous", aqueous), ("organic", organic)):
             if any(not math.isfinite(v) or v < 0 for v in values):
                 raise InvalidParameterError(f"Isotherm {name} values must be finite and >= 0.")
-            if any(b <= a for a, b in zip(values, values[1:], strict=False)):
+            if any(b <= a for a, b in pairwise(values)):
                 raise InvalidParameterError(f"Isotherm {name} values must be strictly increasing.")
         if not 0.0 <= raffinate < feed:
             raise InvalidParameterError("Need 0 <= raffinate < feed.")
@@ -348,4 +403,6 @@ class McCabeThieleAnalysis:
                     warnings=("Fractional stage count: round up and apply the stage efficiency.",),
                 )
             x_in = x_out
-        raise ConvergenceError(f"More than {self.MAX_STAGES} stages needed: the target is not practically reachable.")
+        raise ConvergenceError(
+            f"More than {self.MAX_STAGES} stages needed: the target is not practically reachable."
+        )

@@ -28,14 +28,22 @@ def platform_precision() -> PlatformPrecision:
         import numpy as np
     except ImportError:
         return PlatformPrecision(
-            sys.float_info.epsilon, sys.float_info.mant_dig, False, None, None,
+            sys.float_info.epsilon,
+            sys.float_info.mant_dig,
+            False,
+            None,
+            None,
             "NumPy is not installed: only float64 and exact rational arithmetic are used.",
         )
     info: Any = np.finfo(np.longdouble)
     bits = int(info.nmant) + 1
     extended = bits > sys.float_info.mant_dig
     return PlatformPrecision(
-        sys.float_info.epsilon, sys.float_info.mant_dig, True, bits, extended,
+        sys.float_info.epsilon,
+        sys.float_info.mant_dig,
+        True,
+        bits,
+        extended,
         f"numpy.longdouble has a {bits}-bit mantissa on this platform"
         + ("" if extended else " (no wider than float64)")
         + "; this varies between platforms.",

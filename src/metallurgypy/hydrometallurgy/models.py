@@ -53,11 +53,19 @@ class LeachingYield(BaseModel):
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
             "feed_mass": qty("feed_mass", feed_mass, unit="t", positive=True),
-            "feed_grade": qty("feed_grade", feed_grade, unit="fraction", allowed=GRADE_UNITS, fraction=True),
+            "feed_grade": qty(
+                "feed_grade", feed_grade, unit="fraction", allowed=GRADE_UNITS, fraction=True
+            ),
             "residue_mass": qty("residue_mass", residue_mass, unit="t", positive=True),
-            "residue_grade": qty("residue_grade", residue_grade, unit="fraction", allowed=GRADE_UNITS, fraction=True),
-            "solution_volume": qty("solution_volume", solution_volume, unit="m3", non_negative=True),
-            "solution_concentration": qty("solution_concentration", solution_concentration, unit="g/L", non_negative=True),
+            "residue_grade": qty(
+                "residue_grade", residue_grade, unit="fraction", allowed=GRADE_UNITS, fraction=True
+            ),
+            "solution_volume": qty(
+                "solution_volume", solution_volume, unit="m3", non_negative=True
+            ),
+            "solution_concentration": qty(
+                "solution_concentration", solution_concentration, unit="g/L", non_negative=True
+            ),
         }
 
     def calculate(self) -> GenericResult:
@@ -67,24 +75,39 @@ class LeachingYield(BaseModel):
         m_feed = feed_kg * i["feed_grade"].to("fraction").value
         m_res = residue_kg * i["residue_grade"].to("fraction").value
         if m_feed == 0.0:
-            raise ModelDomainError("Feed contains no metal (grade is zero): extraction is undefined.")
+            raise ModelDomainError(
+                "Feed contains no metal (grade is zero): extraction is undefined."
+            )
         dissolved = m_feed - m_res
-        m_solution = i["solution_volume"].to("m3").value * i["solution_concentration"].to("kg/m3").value
+        m_solution = (
+            i["solution_volume"].to("m3").value * i["solution_concentration"].to("kg/m3").value
+        )
         warnings = []
         if m_res > m_feed:
-            warnings.append("Residue holds more metal than the feed: extraction is negative; check the assays.")
+            warnings.append(
+                "Residue holds more metal than the feed: extraction is negative; check the assays."
+            )
         if residue_kg > feed_kg:
-            warnings.append("Residue mass exceeds feed mass: unusual for a leach; check the masses.")
+            warnings.append(
+                "Residue mass exceeds feed mass: unusual for a leach; check the masses."
+            )
         if m_solution > m_feed:
             warnings.append("Metal in solution exceeds the metal in the feed: inconsistent data.")
         return self._result(
             [
                 out("metal_feed", "Metal in feed", m_feed, "kg"),
                 out("metal_residue", "Metal in residue", m_res, "kg"),
-                out("extraction_solids", "Extraction (solid basis)", dissolved / m_feed, "fraction"),
+                out(
+                    "extraction_solids", "Extraction (solid basis)", dissolved / m_feed, "fraction"
+                ),
                 out("metal_dissolved_solids", "Metal dissolved (solid basis)", dissolved, "kg"),
                 out("metal_solution", "Metal in solution (solution basis)", m_solution, "kg"),
-                out("reconciliation_gap", "Reconciliation gap (solids - solution)", dissolved - m_solution, "kg"),
+                out(
+                    "reconciliation_gap",
+                    "Reconciliation gap (solids - solution)",
+                    dissolved - m_solution,
+                    "kg",
+                ),
             ],
             warnings=warnings,
         )
@@ -116,7 +139,13 @@ class LeachKinetics(BaseModel):
         tolerances: Tolerances = DEFAULT_TOLERANCES,
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
-        x_max = qty("maximum_extraction", maximum_extraction, unit="fraction", allowed=("fraction", "%"), fraction=True)
+        x_max = qty(
+            "maximum_extraction",
+            maximum_extraction,
+            unit="fraction",
+            allowed=("fraction", "%"),
+            fraction=True,
+        )
         if x_max.to("fraction").value == 0.0:
             raise InvalidParameterError("maximum_extraction must be strictly positive.")
         self._inputs = {
@@ -179,14 +208,22 @@ class Neutralization(BaseModel):
         tolerances: Tolerances = DEFAULT_TOLERANCES,
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
-        purity = qty("base_purity", base_purity, unit="fraction", allowed=("fraction", "%"), fraction=True)
+        purity = qty(
+            "base_purity", base_purity, unit="fraction", allowed=("fraction", "%"), fraction=True
+        )
         if purity.to("fraction").value == 0.0:
             raise InvalidParameterError("base_purity must be strictly positive.")
         self._inputs = {
             "solution_volume": qty("solution_volume", solution_volume, unit="m3", positive=True),
             "free_acidity": qty("free_acidity", free_acidity, unit="mol/L", non_negative=True),
             "base_molar_mass": qty("base_molar_mass", base_molar_mass, unit="g/mol", positive=True),
-            "base_equivalents": qty("base_equivalents", base_equivalents, unit="ratio", allowed=("ratio",), positive=True),
+            "base_equivalents": qty(
+                "base_equivalents",
+                base_equivalents,
+                unit="ratio",
+                allowed=("ratio",),
+                positive=True,
+            ),
             "base_purity": purity,
         }
 
@@ -196,7 +233,9 @@ class Neutralization(BaseModel):
         n_base = n_h / i["base_equivalents"].value
         m_pure_kg = n_base * i["base_molar_mass"].to("g/mol").value / 1000.0
         m_commercial_kg = m_pure_kg / i["base_purity"].to("fraction").value
-        warnings = ["Stoichiometric minimum only: actual consumption is higher when metals hydrolyse or precipitate."]
+        warnings = [
+            "Stoichiometric minimum only: actual consumption is higher when metals hydrolyse or precipitate."
+        ]
         if n_h == 0.0:
             warnings.append("Free acidity is zero: nothing to neutralize.")
         return self._result(
@@ -204,7 +243,12 @@ class Neutralization(BaseModel):
                 out("acid_amount", "Free acid (H+) to neutralize", n_h, "mol"),
                 out("base_amount", "Base needed (formula units)", n_base, "mol"),
                 out("base_mass_pure", "Base mass (pure)", m_pure_kg, "kg"),
-                out("base_mass_commercial", "Base mass (commercial, at given purity)", m_commercial_kg, "kg"),
+                out(
+                    "base_mass_commercial",
+                    "Base mass (commercial, at given purity)",
+                    m_commercial_kg,
+                    "kg",
+                ),
             ],
             warnings=warnings,
         )
@@ -236,8 +280,12 @@ class PrecipitationYield(BaseModel):
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
             "solution_volume": qty("solution_volume", solution_volume, unit="m3", positive=True),
-            "initial_concentration": qty("initial_concentration", initial_concentration, unit="g/L", positive=True),
-            "final_concentration": qty("final_concentration", final_concentration, unit="g/L", non_negative=True),
+            "initial_concentration": qty(
+                "initial_concentration", initial_concentration, unit="g/L", positive=True
+            ),
+            "final_concentration": qty(
+                "final_concentration", final_concentration, unit="g/L", non_negative=True
+            ),
         }
 
     def calculate(self) -> GenericResult:

@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from metallurgypy.core import CalculationResult, MetallurgyPyError, Quantity
+from metallurgypy.precision import Measurement, UncertainResult, propagate_model
 from metallurgypy.records import (
     CalculationRecord,
     export_result_csv,
@@ -21,7 +22,6 @@ from metallurgypy.records import (
     save_record,
     verify,
 )
-from metallurgypy.precision import Measurement, UncertainResult, propagate_model
 from metallurgypy.registry import (
     MODULE_CATALOG,
     ModelSpec,
@@ -123,14 +123,18 @@ class CalculationService:
                     raise ValueError("negative")
                 uncertainties[param.name] = u
             except ValueError:
-                field_errors[param.name] = "The uncertainty must be a number >= 0, in the same unit."
+                field_errors[param.name] = (
+                    "The uncertainty must be a number >= 0, in the same unit."
+                )
         if field_errors:
             return RunOutcome(field_errors=field_errors)
 
         try:
             if uncertainties:
                 measurements = {
-                    p.name: Measurement(inputs[p.name].value, inputs[p.name].unit, uncertainties.get(p.name, 0.0))
+                    p.name: Measurement(
+                        inputs[p.name].value, inputs[p.name].unit, uncertainties.get(p.name, 0.0)
+                    )
                     for p in spec.parameters
                 }
                 uncertain = propagate_model(spec, measurements, correlations)
@@ -172,12 +176,28 @@ class CalculationService:
             u_text = ""
             if name in stored:
                 try:
-                    u_text = repr(Measurement(**{k: stored[name][k] for k in (
-                        "value", "unit", "uncertainty", "kind", "coverage_factor", "method", "timestamp"
-                    ) if k in stored[name]}).standard_uncertainty)
+                    u_text = repr(
+                        Measurement(
+                            **{
+                                k: stored[name][k]
+                                for k in (
+                                    "value",
+                                    "unit",
+                                    "uncertainty",
+                                    "kind",
+                                    "coverage_factor",
+                                    "method",
+                                    "timestamp",
+                                )
+                                if k in stored[name]
+                            }
+                        ).standard_uncertainty
+                    )
                 except (MetallurgyPyError, TypeError):
                     u_text = ""
-            fields[name] = FieldInput(repr(q.value), q.unit, "" if u_text in ("0.0", "") else u_text)
+            fields[name] = FieldInput(
+                repr(q.value), q.unit, "" if u_text in ("0.0", "") else u_text
+            )
         correlations = {
             (str(a), str(b)): float(r)
             for a, b, r in (record.uncertainty or {}).get("correlations", [])

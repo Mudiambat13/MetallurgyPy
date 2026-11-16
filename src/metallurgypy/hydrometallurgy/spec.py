@@ -20,9 +20,20 @@ register_class(
         param("feed_mass", "Feed mass", "Dry mass of solids fed.", "t"),
         param("feed_grade", "Feed grade", "Metal mass fraction in the feed.", "%", GRADE_UNITS),
         param("residue_mass", "Residue mass", "Dry mass of leach residue.", "t"),
-        param("residue_grade", "Residue grade", "Metal mass fraction in the residue.", "%", GRADE_UNITS),
+        param(
+            "residue_grade",
+            "Residue grade",
+            "Metal mass fraction in the residue.",
+            "%",
+            GRADE_UNITS,
+        ),
         param("solution_volume", "Pregnant solution volume", "Volume of leach solution.", "m3"),
-        param("solution_concentration", "Solution concentration", "Metal concentration in the solution.", "g/L"),
+        param(
+            "solution_concentration",
+            "Solution concentration",
+            "Metal concentration in the solution.",
+            "g/L",
+        ),
     ),
     example={
         "feed_mass": Quantity(100.0, "t"),
@@ -40,7 +51,13 @@ register_class(
     title="First-order leach kinetics",
     description="Empirical extraction versus time from a maximum extraction and a rate constant.",
     parameters=(
-        param("maximum_extraction", "Maximum extraction", "Plateau extraction for long times.", "%", ("fraction", "%")),
+        param(
+            "maximum_extraction",
+            "Maximum extraction",
+            "Plateau extraction for long times.",
+            "%",
+            ("fraction", "%"),
+        ),
         param("rate_constant", "Rate constant k", "First-order rate constant.", "1/h"),
         param("time", "Leaching time", "Time at which the extraction is wanted.", "h"),
     ),
@@ -59,9 +76,23 @@ register_class(
     parameters=(
         param("solution_volume", "Solution volume", "Volume to neutralize.", "m3"),
         param("free_acidity", "Free acidity", "Mol of H+ per litre.", "mol/L"),
-        param("base_molar_mass", "Base molar mass", "Molar mass of the base formula unit.", "g/mol"),
-        param("base_equivalents", "OH- per formula unit", "Hydroxide delivered per formula unit.", "ratio", ("ratio",)),
-        param("base_purity", "Base purity", "Active share of the commercial base.", "%", ("fraction", "%")),
+        param(
+            "base_molar_mass", "Base molar mass", "Molar mass of the base formula unit.", "g/mol"
+        ),
+        param(
+            "base_equivalents",
+            "OH- per formula unit",
+            "Hydroxide delivered per formula unit.",
+            "ratio",
+            ("ratio",),
+        ),
+        param(
+            "base_purity",
+            "Base purity",
+            "Active share of the commercial base.",
+            "%",
+            ("fraction", "%"),
+        ),
     ),
     example={
         "solution_volume": Quantity(100.0, "m3"),
@@ -79,8 +110,18 @@ register_class(
     description="Metal precipitated and yield from concentrations before and after.",
     parameters=(
         param("solution_volume", "Solution volume", "Volume treated (assumed unchanged).", "m3"),
-        param("initial_concentration", "Initial concentration", "Dissolved metal before precipitation.", "g/L"),
-        param("final_concentration", "Final concentration", "Dissolved metal after precipitation.", "g/L"),
+        param(
+            "initial_concentration",
+            "Initial concentration",
+            "Dissolved metal before precipitation.",
+            "g/L",
+        ),
+        param(
+            "final_concentration",
+            "Final concentration",
+            "Dissolved metal after precipitation.",
+            "g/L",
+        ),
     ),
     example={
         "solution_volume": Quantity(50.0, "m3"),

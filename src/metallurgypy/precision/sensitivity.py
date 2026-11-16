@@ -62,7 +62,10 @@ def one_at_a_time(
     for p in spec.parameters:
         x = inputs[p.name]
         sides: dict[str, dict[str, float] | None] = {}
-        for label, factor in (("low", 1.0 - relative_variation), ("high", 1.0 + relative_variation)):
+        for label, factor in (
+            ("low", 1.0 - relative_variation),
+            ("high", 1.0 + relative_variation),
+        ):
             changed = dict(inputs)
             changed[p.name] = Quantity(x.value * factor, x.unit)
             try:
@@ -73,8 +76,11 @@ def one_at_a_time(
             low, high = sides["low"], sides["high"]
             entries.append(
                 OneAtATimeEntry(
-                    out_name, p.name, None if low is None else low.get(out_name),
-                    None if high is None else high.get(out_name), q.unit,
+                    out_name,
+                    p.name,
+                    None if low is None else low.get(out_name),
+                    None if high is None else high.get(out_name),
+                    q.unit,
                 )
             )
     return entries

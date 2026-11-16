@@ -18,8 +18,19 @@ register_class(
     title="Single-stage extraction",
     description="One equilibrium stage with a constant distribution coefficient.",
     parameters=(
-        param("feed_concentration", "Aqueous feed concentration", "Metal concentration in the aqueous feed.", "g/L"),
-        param("distribution_coefficient", "Distribution coefficient D", "C_org / C_aq at equilibrium (your system).", "ratio", _D),
+        param(
+            "feed_concentration",
+            "Aqueous feed concentration",
+            "Metal concentration in the aqueous feed.",
+            "g/L",
+        ),
+        param(
+            "distribution_coefficient",
+            "Distribution coefficient D",
+            "C_org / C_aq at equilibrium (your system).",
+            "ratio",
+            _D,
+        ),
         param("oa_ratio", "O/A ratio", "Organic to aqueous volume ratio.", "ratio", _D),
     ),
     example={
@@ -35,10 +46,26 @@ register_class(
     title="Single-stage stripping",
     description="One equilibrium stripping stage with a constant distribution coefficient.",
     parameters=(
-        param("loaded_organic_concentration", "Loaded organic concentration", "Metal in the loaded organic.", "g/L"),
-        param("strip_distribution_coefficient", "Strip distribution coefficient", "C_org / C_aq under stripping conditions.", "ratio", _D),
+        param(
+            "loaded_organic_concentration",
+            "Loaded organic concentration",
+            "Metal in the loaded organic.",
+            "g/L",
+        ),
+        param(
+            "strip_distribution_coefficient",
+            "Strip distribution coefficient",
+            "C_org / C_aq under stripping conditions.",
+            "ratio",
+            _D,
+        ),
         param("ao_ratio", "A/O ratio", "Aqueous (strip) to organic volume ratio.", "ratio", _D),
-        param("strip_aqueous_inlet_concentration", "Strip liquor inlet concentration", "Metal already in the strip liquor.", "g/L"),
+        param(
+            "strip_aqueous_inlet_concentration",
+            "Strip liquor inlet concentration",
+            "Metal already in the strip liquor.",
+            "g/L",
+        ),
     ),
     example={
         "loaded_organic_concentration": Quantity(4.0, "g/L"),
@@ -54,8 +81,16 @@ register_class(
     title="Counter-current extraction (Kremser)",
     description="Extraction over N theoretical counter-current stages, constant D.",
     parameters=(
-        param("feed_concentration", "Aqueous feed concentration", "Metal in the aqueous feed.", "g/L"),
-        param("distribution_coefficient", "Distribution coefficient D", "C_org / C_aq (your system).", "ratio", _D),
+        param(
+            "feed_concentration", "Aqueous feed concentration", "Metal in the aqueous feed.", "g/L"
+        ),
+        param(
+            "distribution_coefficient",
+            "Distribution coefficient D",
+            "C_org / C_aq (your system).",
+            "ratio",
+            _D,
+        ),
         param("oa_ratio", "O/A ratio", "Organic to aqueous volume ratio.", "ratio", _D),
         param("stages", "Theoretical stages N", "Whole number of stages.", "ratio", _D),
     ),
@@ -73,9 +108,21 @@ register_class(
     title="Stages required",
     description="Theoretical counter-current stages for a target extraction, constant D.",
     parameters=(
-        param("distribution_coefficient", "Distribution coefficient D", "C_org / C_aq (your system).", "ratio", _D),
+        param(
+            "distribution_coefficient",
+            "Distribution coefficient D",
+            "C_org / C_aq (your system).",
+            "ratio",
+            _D,
+        ),
         param("oa_ratio", "O/A ratio", "Organic to aqueous volume ratio.", "ratio", _D),
-        param("target_extraction", "Target extraction", "Fraction of metal to extract (0 to 100 %, excluded).", "%", ("fraction", "%")),
+        param(
+            "target_extraction",
+            "Target extraction",
+            "Fraction of metal to extract (0 to 100 %, excluded).",
+            "%",
+            ("fraction", "%"),
+        ),
     ),
     example={
         "distribution_coefficient": Quantity(2.0, "ratio"),

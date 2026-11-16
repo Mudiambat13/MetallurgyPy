@@ -13,9 +13,23 @@ register_class(
     description="Mass pull, metal recovery and enrichment from feed, concentrate and tailings grades.",
     parameters=(
         param("feed_mass", "Feed mass", "Mass of the feed (> 0).", "t"),
-        param("feed_grade", "Feed grade", "Mass fraction of the metal in the feed.", "%", GRADE_UNITS),
-        param("concentrate_grade", "Concentrate grade", "Mass fraction of the metal in the concentrate.", "%", GRADE_UNITS),
-        param("tailings_grade", "Tailings grade", "Mass fraction of the metal in the tailings.", "%", GRADE_UNITS),
+        param(
+            "feed_grade", "Feed grade", "Mass fraction of the metal in the feed.", "%", GRADE_UNITS
+        ),
+        param(
+            "concentrate_grade",
+            "Concentrate grade",
+            "Mass fraction of the metal in the concentrate.",
+            "%",
+            GRADE_UNITS,
+        ),
+        param(
+            "tailings_grade",
+            "Tailings grade",
+            "Mass fraction of the metal in the tailings.",
+            "%",
+            GRADE_UNITS,
+        ),
     ),
     example={
         "feed_mass": Quantity(1000.0, "t"),
@@ -31,7 +45,13 @@ register_class(
     title="First-order kinetics",
     description="Recovery versus time from an ultimate recovery and a rate constant.",
     parameters=(
-        param("ultimate_recovery", "Ultimate recovery", "Plateau recovery reached for long times.", "%", ("fraction", "%")),
+        param(
+            "ultimate_recovery",
+            "Ultimate recovery",
+            "Plateau recovery reached for long times.",
+            "%",
+            ("fraction", "%"),
+        ),
         param("rate_constant", "Rate constant k", "First-order flotation rate constant.", "1/min"),
         param("time", "Flotation time", "Time at which the recovery is wanted.", "min"),
     ),

@@ -15,7 +15,13 @@ from metallurgypy.core import (
     ModelDomainError,
     Quantity,
 )
-from metallurgypy.core.constants import AVOGADRO, BOLTZMANN, ELEMENTARY_CHARGE, FARADAY, GAS_CONSTANT
+from metallurgypy.core.constants import (
+    AVOGADRO,
+    BOLTZMANN,
+    ELEMENTARY_CHARGE,
+    FARADAY,
+    GAS_CONSTANT,
+)
 from metallurgypy.core.numerics import bisect
 from metallurgypy.electrowinning import Electrowinning
 from metallurgypy.filtration import CakeMoisture, ConstantPressureFiltration
@@ -48,9 +54,13 @@ def val(result, name):
 
 
 def test_constants_are_the_exact_si_values_and_derived_ones_match_codata_digits():
-    assert (AVOGADRO, ELEMENTARY_CHARGE, BOLTZMANN) == (6.02214076e23, 1.602176634e-19, 1.380649e-23)
-    assert FARADAY == pytest.approx(96485.33212, rel=1e-10)
-    assert GAS_CONSTANT == pytest.approx(8.314462618, rel=1e-10)
+    assert (AVOGADRO, ELEMENTARY_CHARGE, BOLTZMANN) == (
+        6.02214076e23,
+        1.602176634e-19,
+        1.380649e-23,
+    )
+    assert pytest.approx(96485.33212, rel=1e-10) == FARADAY
+    assert pytest.approx(8.314462618, rel=1e-10) == GAS_CONSTANT
 
 
 # ------------------------------- numerics ---------------------------------- #
@@ -94,14 +104,18 @@ def test_dilution_units_equivalent_and_domain():
 
 def test_concentration_conversion():
     # 40 g/L of a 40 g/mol species = 1 mol/L ; 98 g/L at 98 g/mol = 1 mol/L
-    assert val(ConcentrationConversion(40, 40).calculate(), "molar_concentration") == pytest.approx(1.0)
+    assert val(ConcentrationConversion(40, 40).calculate(), "molar_concentration") == pytest.approx(
+        1.0
+    )
     r = ConcentrationConversion(Q(49_000, "mg/L"), Q(98, "g/mol")).calculate()
     assert val(r, "molar_concentration") == pytest.approx(0.5, rel=1e-14)
 
 
 def test_reagent_consumption_reference():
     # 100 t/h, 2 kg/t active, purity 95 %, 20 h/day, 30 days
-    r = ReagentConsumption(Q(100, "t/h"), Q(2, "kg/t"), Q(95, "%"), Q(20, "h"), Q(30, "d")).calculate()
+    r = ReagentConsumption(
+        Q(100, "t/h"), Q(2, "kg/t"), Q(95, "%"), Q(20, "h"), Q(30, "d")
+    ).calculate()
     assert val(r, "active_per_hour") == pytest.approx(200.0)  # 2 kg/t * 100 t/h
     assert val(r, "product_per_hour") == pytest.approx(200.0 / 0.95)
     assert val(r, "product_per_day") == pytest.approx(200.0 / 0.95 * 20)
@@ -207,12 +221,18 @@ def test_filtration_scaling_laws():
     base = ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 10, 3e5, 5)
     # with no medium resistance, t ~ V^2 : doubling V multiplies t by 4
     t1 = val(base.calculate(), "filtration_time")
-    t2 = val(ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 10, 3e5, 10).calculate(), "filtration_time")
+    t2 = val(
+        ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 10, 3e5, 10).calculate(), "filtration_time"
+    )
     assert t2 == pytest.approx(4 * t1, rel=1e-12)
     # t ~ 1/dP and ~ 1/A^2 for the cake term
-    t_dp = val(ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 10, 6e5, 5).calculate(), "filtration_time")
+    t_dp = val(
+        ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 10, 6e5, 5).calculate(), "filtration_time"
+    )
     assert t_dp == pytest.approx(t1 / 2, rel=1e-12)
-    t_a = val(ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 20, 3e5, 5).calculate(), "filtration_time")
+    t_a = val(
+        ConstantPressureFiltration(1e-3, 1e11, 50, 0.0, 20, 3e5, 5).calculate(), "filtration_time"
+    )
     assert t_a == pytest.approx(t1 / 4, rel=1e-12)
 
 
@@ -241,7 +261,10 @@ def test_leaching_yield_reference():
 
 def test_leaching_yield_warnings_and_domain():
     assert LeachingYield(100, 0.02, 92, 0.03, 1, 1).calculate().warnings  # negative extraction
-    assert any("solution exceeds" in w for w in LeachingYield(100, 0.02, 92, 0.005, 1000, 50).calculate().warnings)
+    assert any(
+        "solution exceeds" in w
+        for w in LeachingYield(100, 0.02, 92, 0.005, 1000, 50).calculate().warnings
+    )
     with pytest.raises(ModelDomainError):
         LeachingYield(100, 0.0, 92, 0.0, 1, 1).calculate()
 
@@ -302,7 +325,9 @@ def test_kremser_reference_and_limits():
     assert val(r, "extraction") == pytest.approx(14 / 15, rel=1e-14)
     assert val(r, "loaded_organic_concentration") == pytest.approx(5 * 14 / 15, rel=1e-14)
     # E = 1: phi = 1/(N+1)
-    assert val(CountercurrentExtraction(5, 1, 1, 4).calculate(), "extraction") == pytest.approx(1 - 1 / 5)
+    assert val(CountercurrentExtraction(5, 1, 1, 4).calculate(), "extraction") == pytest.approx(
+        1 - 1 / 5
+    )
     # one stage must equal the single-stage result
     one = CountercurrentExtraction(5, 4, 1, 1).calculate()
     single = SingleStageExtraction(5, 4, 1).calculate()
@@ -311,7 +336,9 @@ def test_kremser_reference_and_limits():
     many = CountercurrentExtraction(5, 0.5, 1, 1000).calculate()
     assert val(many, "extraction") == pytest.approx(0.5, rel=1e-9) and many.warnings
     # a huge extraction factor must not overflow
-    assert val(CountercurrentExtraction(5, 1e6, 1, 1000).calculate(), "extraction") == pytest.approx(1.0)
+    assert val(
+        CountercurrentExtraction(5, 1e6, 1, 1000).calculate(), "extraction"
+    ) == pytest.approx(1.0)
     with pytest.raises(InvalidParameterError, match="whole number"):
         CountercurrentExtraction(5, 2, 1, 2.5)
 
@@ -324,7 +351,9 @@ def test_stages_required_is_the_inverse_of_kremser():
     from metallurgypy.solvent_extraction.models import _unextracted_fraction
 
     assert _unextracted_fraction(2.0, n) == pytest.approx(0.01, rel=1e-12)
-    assert val(StagesRequired(1, 1, Q(80, "%")).calculate(), "theoretical_stages") == pytest.approx(4.0)  # 1/0.2-1
+    assert val(StagesRequired(1, 1, Q(80, "%")).calculate(), "theoretical_stages") == pytest.approx(
+        4.0
+    )  # 1/0.2-1
     with pytest.raises(ModelDomainError, match="Unreachable"):
         StagesRequired(0.5, 1, Q(60, "%")).calculate()  # max extraction is 50 %
 
@@ -336,13 +365,18 @@ def test_mccabe_thiele_matches_kremser_for_a_linear_isotherm():
     result = McCabeThieleAnalysis(xs, ys, feed=feed, raffinate=raff, ao_ratio=ao).run()
     phi = raff / feed  # 0.01 -> 99 % extraction
     expected = math.log(1 + (2 - 1) / phi) / math.log(2) - 1  # Kremser, 5.658
-    assert result.stages == pytest.approx(expected, rel=0.08)  # stepping prorates the last stage linearly
+    assert result.stages == pytest.approx(
+        expected, rel=0.08
+    )  # stepping prorates the last stage linearly
     assert 5.0 < result.stages < 6.0
     assert result.loaded_organic == pytest.approx(d * (feed - 0) * 0 + result.stage_points[0][1])
 
 
 def test_mccabe_thiele_errors():
-    xs, ys = [0.0, 1.0, 2.0, 4.0], [0.0, 0.5, 1.0, 2.0]  # D = 0.5 : extraction factor < 1 at A/O = 1
+    xs, ys = (
+        [0.0, 1.0, 2.0, 4.0],
+        [0.0, 0.5, 1.0, 2.0],
+    )  # D = 0.5 : extraction factor < 1 at A/O = 1
     with pytest.raises(ConvergenceError, match="pinch"):
         McCabeThieleAnalysis(xs, ys, feed=2.0, raffinate=0.05, ao_ratio=1.0).run()
     with pytest.raises(ModelDomainError, match="extrapolation"):
@@ -371,7 +405,9 @@ def test_gibbs_edges():
     at_equilibrium = GibbsReaction(10, 0.0, 300).calculate()  # unit defaults: kJ/mol, J/(mol K), K
     assert val(at_equilibrium, "delta_g") == pytest.approx(10.0)
     zero = GibbsReaction(Q(30, "kJ/mol"), Q(100, "J/(mol.K)"), Q(300, "K")).calculate()
-    assert val(zero, "delta_g") == pytest.approx(0.0, abs=1e-12) and val(zero, "k") == pytest.approx(1.0)
+    assert val(zero, "delta_g") == pytest.approx(0.0, abs=1e-12) and val(
+        zero, "k"
+    ) == pytest.approx(1.0)
     huge = GibbsReaction(Q(-2000, "kJ/mol"), 0.0, 300).calculate()
     assert "k" not in {o.name for o in huge.outputs()} and huge.warnings
     with pytest.raises(InvalidParameterError, match="absolute zero"):
@@ -390,7 +426,9 @@ def test_weak_acid_ph_solves_the_charge_balance():
     r = WeakAcidPH(Q(0.1, "mol/L"), 4.76, 14.0).calculate()
     h = val(r, "hydrogen_concentration")
     ka, kw, c = 10**-4.76, 1e-14, 0.1
-    assert h - c * ka / (ka + h) - kw / h == pytest.approx(0.0, abs=1e-15)  # residual of the equation
+    assert h - c * ka / (ka + h) - kw / h == pytest.approx(
+        0.0, abs=1e-15
+    )  # residual of the equation
     assert val(r, "ph") == pytest.approx(-math.log10(h), rel=1e-14)
     assert val(r, "ph") == pytest.approx(2.8829, abs=1e-3)  # approx. sqrt(Ka C) solution
     assert val(r, "dissociation_fraction") == pytest.approx(ka / (ka + h), rel=1e-13)
@@ -413,8 +451,14 @@ def test_every_registered_model_example_runs_and_is_traceable():
     specs = list_models()
     assert len(specs) == 21
     assert {s.module_key for s in specs} == {
-        "mass_balance", "reagents", "electrowinning", "flotation", "filtration",
-        "hydrometallurgy", "solvent_extraction", "thermodynamics",
+        "mass_balance",
+        "reagents",
+        "electrowinning",
+        "flotation",
+        "filtration",
+        "hydrometallurgy",
+        "solvent_extraction",
+        "thermodynamics",
     }
     for spec in specs:
         result = spec.run(spec.example)

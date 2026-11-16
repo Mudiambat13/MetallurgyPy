@@ -46,7 +46,14 @@ class ImportView(QWidget):
         self.reject_btn = QPushButton("Export rejected rows…")
         self.reject_btn.clicked.connect(self._export_rejected)
         bar = QHBoxLayout()
-        for w in (self.open_btn, self.validate_btn, QLabel("Model:"), self.model_box, self.run_btn, self.reject_btn):
+        for w in (
+            self.open_btn,
+            self.validate_btn,
+            QLabel("Model:"),
+            self.model_box,
+            self.run_btn,
+            self.reject_btn,
+        ):
             bar.addWidget(w)
         bar.addStretch(1)
 
@@ -98,7 +105,9 @@ class ImportView(QWidget):
         self.vm.run_model()
 
     def _export_rejected(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, "Export rejected rows", "rejected_rows.csv", "CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export rejected rows", "rejected_rows.csv", "CSV (*.csv)"
+        )
         if not path:
             return
         try:
@@ -124,7 +133,10 @@ class ImportView(QWidget):
         self.error.setText(self.vm.error or "")
         rows: list[tuple[str, str]] = []
         if self.vm.report is not None:
-            rows += [(str(r.row_number), "rejected: " + "; ".join(r.reasons)) for r in self.vm.report.rejected]
+            rows += [
+                (str(r.row_number), "rejected: " + "; ".join(r.reasons))
+                for r in self.vm.report.rejected
+            ]
         for item in self.vm.batch:
             outcome = "ok" if item.result is not None else f"model error: {item.error}"
             rows.append((str(item.row_number), outcome))

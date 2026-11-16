@@ -53,7 +53,9 @@ def _covariance(
         if a == b:
             raise InvalidParameterError("A correlation needs two different inputs.")
         if isinstance(r, bool) or not isinstance(r, (int, float)) or not -1.0 <= r <= 1.0:
-            raise InvalidParameterError(f"Correlation {(a, b)!r} must be between -1 and 1, got {r!r}.")
+            raise InvalidParameterError(
+                f"Correlation {(a, b)!r} must be between -1 and 1, got {r!r}."
+            )
         i, j = index[a], index[b]
         if corr[i][j] not in (0.0, r) or corr[j][i] not in (0.0, r):
             raise InvalidParameterError(f"Conflicting correlation values for {(a, b)!r}.")
@@ -109,7 +111,9 @@ class OutputUncertainty:
         return None if self.value == 0.0 else self.standard_uncertainty / abs(self.value)
 
     def as_measurement(self, method: str = "GUM first-order propagation") -> Measurement:
-        return Measurement(self.value, self.unit, self.standard_uncertainty, "standard", method=method)
+        return Measurement(
+            self.value, self.unit, self.standard_uncertainty, "standard", method=method
+        )
 
 
 @dataclass(frozen=True)
@@ -170,24 +174,31 @@ def propagate_model(
             )
     jacobian: dict[str, dict[str, Derivative]] = {}
     for n in names:
-        if std[n] == 0.0 and not any(
-            cov[names.index(n)][j] for j in range(len(names))
-        ):
+        if std[n] == 0.0 and not any(cov[names.index(n)][j] for j in range(len(names))):
             continue  # exact input: no contribution, no derivative needed
         jacobian[n] = derivatives_wrt(spec, nominal_inputs, n, scale=std[n])
         if any(d.scheme != "central" for d in jacobian[n].values()):
-            warnings.append(f"{n}: nominal value is at the edge of the model domain (one-sided derivative used).")
+            warnings.append(
+                f"{n}: nominal value is at the edge of the model domain (one-sided derivative used)."
+            )
 
     outputs: dict[str, OutputUncertainty] = {}
     labels = {o.name: o.label for o in nominal.outputs()}
     for out_name, q in base.items():
-        grad = [jacobian[n][out_name].value if n in jacobian and out_name in jacobian[n] else 0.0 for n in names]
-        var = sum(grad[i] * cov[i][j] * grad[j] for i in range(len(names)) for j in range(len(names)))
+        grad = [
+            jacobian[n][out_name].value if n in jacobian and out_name in jacobian[n] else 0.0
+            for n in names
+        ]
+        var = sum(
+            grad[i] * cov[i][j] * grad[j] for i in range(len(names)) for j in range(len(names))
+        )
         var = max(var, 0.0)  # tiny negative values are rounding noise of a PSD form
         contributions: dict[str, float] = {}
         if var > 0.0:
             for i, n in enumerate(names):
-                contributions[n] = grad[i] * sum(cov[i][j] * grad[j] for j in range(len(names))) / var
+                contributions[n] = (
+                    grad[i] * sum(cov[i][j] * grad[j] for j in range(len(names))) / var
+                )
         else:
             contributions = dict.fromkeys(names, 0.0)
         outputs[out_name] = OutputUncertainty(
@@ -252,7 +263,10 @@ def monte_carlo(
     for _ in range(samples):
         z = [rng.gauss(0.0, 1.0) for _ in names]
         draw = {
-            n: Quantity(nominal_inputs[n].value + sum(lower[i][k] * z[k] for k in range(i + 1)), nominal_inputs[n].unit)
+            n: Quantity(
+                nominal_inputs[n].value + sum(lower[i][k] * z[k] for k in range(i + 1)),
+                nominal_inputs[n].unit,
+            )
             for i, n in enumerate(names)
         }
         try:
@@ -265,7 +279,9 @@ def monte_carlo(
             units[key] = q.unit
     kept = samples - rejected
     if kept < 2:
-        raise CalculationError("Almost every Monte Carlo draw left the model domain: the inputs are too uncertain for this model.")
+        raise CalculationError(
+            "Almost every Monte Carlo draw left the model domain: the inputs are too uncertain for this model."
+        )
     outputs: dict[str, MonteCarloOutput] = {}
     for key, values in columns.items():
         mean = math.fsum(values) / len(values)

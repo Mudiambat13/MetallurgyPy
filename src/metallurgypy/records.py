@@ -59,7 +59,9 @@ class CalculationRecord:
     notes: str = ""
     format_version: int = FORMAT_VERSION
     saved_with: str = ""
-    uncertainty: dict[str, Any] | None = None  # propagated uncertainty block, if the calculation had one
+    uncertainty: dict[str, Any] | None = (
+        None  # propagated uncertainty block, if the calculation had one
+    )
 
 
 def csv_safe(text: str) -> str:
@@ -114,7 +116,9 @@ def save_record(
         "name": name,
         "notes": notes,
         "model_id": result.provenance.model_id,
-        "inputs": {k: {"value": q.value, "unit": q.unit} for k, q in result.provenance.inputs.items()},
+        "inputs": {
+            k: {"value": q.value, "unit": q.unit} for k, q in result.provenance.inputs.items()
+        },
         "result": result.to_dict(),
     }
     if uncertainty is not None:
@@ -190,9 +194,7 @@ def recompute(record: CalculationRecord) -> CalculationResult:
     return get_model(record.model_id).run(record.inputs)
 
 
-def verify(
-    record: CalculationRecord, tolerances: Tolerances = DEFAULT_TOLERANCES
-) -> list[str]:
+def verify(record: CalculationRecord, tolerances: Tolerances = DEFAULT_TOLERANCES) -> list[str]:
     """Compare the stored outputs with a fresh calculation.
 
     Returns a list of human-readable differences; an empty list means the saved
@@ -230,11 +232,26 @@ def result_to_csv(result: CalculationResult) -> str:
     writer = csv.writer(buffer, lineterminator="\n")
     writer.writerow(["section", "name", "label", "value", "unit", "kind"])
     for name, quantity in result.provenance.inputs.items():
-        writer.writerow(["input", csv_safe(name), csv_safe(name), repr(quantity.value), csv_safe(quantity.unit), "input"])
+        writer.writerow(
+            [
+                "input",
+                csv_safe(name),
+                csv_safe(name),
+                repr(quantity.value),
+                csv_safe(quantity.unit),
+                "input",
+            ]
+        )
     for item in result.outputs():
         writer.writerow(
-            ["output", csv_safe(item.name), csv_safe(item.label), repr(item.quantity.value),
-             csv_safe(item.quantity.unit), item.kind]
+            [
+                "output",
+                csv_safe(item.name),
+                csv_safe(item.label),
+                repr(item.quantity.value),
+                csv_safe(item.quantity.unit),
+                item.kind,
+            ]
         )
     return buffer.getvalue()
 

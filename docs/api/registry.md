@@ -5,22 +5,6 @@
 
 Registry of calculators, so interfaces can discover models from controlled metadata.
 
-## `Any`
-
-```python
-class Any(*args, **kwargs)
-```
-
-Special type indicating an unconstrained type.
-
-- Any is assignable to every type.
-- Any assumed to have all methods and attributes.
-- All values are assignable to Any.
-
-Note that all the above statements are true from the point of view of
-static type checkers. At runtime, Any cannot be used with instance
-checks.
-
 ## `Calculation`
 
 ```python
@@ -51,12 +35,6 @@ chart_data(self) -> ChartData | None
 
 Data for the default chart of this result, if it has one.
 
-## `Callable`
-
-```python
-class Callable()
-```
-
 ## `InvalidParameterError`
 
 ```python
@@ -64,54 +42,6 @@ class InvalidParameterError(...)
 ```
 
 An input is missing, non-finite, of the wrong type or out of its domain.
-
-## `MODULE_CATALOG`
-
-Constant of type `tuple`.
-
-## `Mapping`
-
-```python
-class Mapping()
-```
-
-A Mapping is a generic container for associating key/value
-pairs.
-
-This class provides concrete generic implementations of all
-methods except for __getitem__, __iter__, and __len__.
-
-### `Mapping.get`
-
-```python
-get(self, key, default=None)
-```
-
-D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None.
-
-### `Mapping.keys`
-
-```python
-keys(self)
-```
-
-D.keys() -> a set-like object providing a view on D's keys
-
-### `Mapping.items`
-
-```python
-items(self)
-```
-
-D.items() -> a set-like object providing a view on D's items
-
-### `Mapping.values`
-
-```python
-values(self)
-```
-
-D.values() -> an object providing a view on D's values
 
 ## `ModelSpec`
 
@@ -131,50 +61,6 @@ class ModuleInfo(key: str, title: str, description: str, doc_page: str) -> None
 class ParameterSpec(name: str, label: str, description: str, units: tuple[str, ...], default_unit: str) -> None
 ```
 
-## `Protocol`
-
-```python
-class Protocol()
-```
-
-Base class for protocol classes.
-
-Protocol classes are defined as:
-
-```text
-class Proto(Protocol):
-    def meth(self) -> int:
-        ...
-```
-
-Such classes are primarily used with static type checkers that recognize
-structural subtyping (static duck-typing).
-
-For example:
-
-```text
-class C:
-    def meth(self) -> int:
-        return 0
-
-def func(x: Proto) -> int:
-    return x.meth()
-
-func(C())  # Passes static type check
-```
-
-See PEP 544 for details. Protocol classes decorated with
-@typing.runtime_checkable act as simple-minded runtime protocols that check
-only the presence of given attributes, ignoring their type signatures.
-Protocol classes can be generic, they are defined as:
-
-```text
-class GenProto[T](Protocol):
-    def meth(self) -> T:
-        ...
-```
-
-
 ## `Quantity`
 
 ```python
@@ -190,29 +76,6 @@ to(self, unit: str) -> Quantity
 ```
 
 Return the same quantity expressed in ``unit``.
-
-## `annotations`
-
-Constant of type `_Feature`.
-
-## `dataclass`
-
-```python
-dataclass(cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
-```
-
-Add dunder methods based on the fields defined in the class.
-
-Examines PEP 526 __annotations__ to determine fields.
-
-If init is true, an __init__() method is added to the class. If repr
-is true, a __repr__() method is added. If order is true, rich
-comparison dunder methods are added. If unsafe_hash is true, a
-__hash__() method is added. If frozen is true, fields may not be
-assigned to after instance creation. If match_args is true, the
-__match_args__ tuple is added. If kw_only is true, then by default
-all fields are keyword-only. If slots is true, a new class with a
-__slots__ attribute is returned.
 
 ## `get_model`
 

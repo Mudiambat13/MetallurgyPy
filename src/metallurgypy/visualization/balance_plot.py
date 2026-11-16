@@ -43,9 +43,7 @@ def build_figure(chart: ChartData) -> Any:
     return figure
 
 
-def save_chart(
-    chart: ChartData, path: str | os.PathLike[str], *, overwrite: bool = False
-) -> Path:
+def save_chart(chart: ChartData, path: str | os.PathLike[str], *, overwrite: bool = False) -> Path:
     """Write ``chart`` as PNG or SVG (chosen by the file suffix)."""
     target = Path(path)
     if target.suffix.lower() not in _SUPPORTED:

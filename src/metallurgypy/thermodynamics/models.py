@@ -114,9 +114,14 @@ class StrongAcidPH(BaseModel):
             )
         warnings = []
         if h > 0.1:
-            warnings.append("[H+] above 0.1 mol/L: activity coefficients are no longer close to 1; the pH is indicative only.")
+            warnings.append(
+                "[H+] above 0.1 mol/L: activity coefficients are no longer close to 1; the pH is indicative only."
+            )
         return self._result(
-            [out("hydrogen_concentration", "[H+]", h, "mol/L"), out("ph", "pH (ideal)", -math.log10(h), "ratio")],
+            [
+                out("hydrogen_concentration", "[H+]", h, "mol/L"),
+                out("ph", "pH (ideal)", -math.log10(h), "ratio"),
+            ],
             warnings=warnings,
         )
 
@@ -149,7 +154,9 @@ class WeakAcidPH(BaseModel):
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
         self._inputs = {
-            "analytical_concentration": qty("analytical_concentration", analytical_concentration, unit="mol/L", positive=True),
+            "analytical_concentration": qty(
+                "analytical_concentration", analytical_concentration, unit="mol/L", positive=True
+            ),
             "pka": qty("pka", pka, unit="ratio", allowed=("ratio",)),
             "pkw": qty("pkw", pkw, unit="ratio", allowed=("ratio",), positive=True),
         }
@@ -169,7 +176,12 @@ class WeakAcidPH(BaseModel):
             [
                 out("hydrogen_concentration", "[H+]", h, "mol/L"),
                 out("ph", "pH (ideal)", -math.log10(h), "ratio"),
-                out("dissociation_fraction", "Degree of dissociation alpha", ka / (ka + h), "fraction"),
+                out(
+                    "dissociation_fraction",
+                    "Degree of dissociation alpha",
+                    ka / (ka + h),
+                    "fraction",
+                ),
             ],
             convergence=root.status(),
             method="Bisection on [H+] in [1e-30, C + 1] mol/L",

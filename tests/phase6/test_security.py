@@ -1,5 +1,3 @@
-import pytest
-
 from metallurgypy.comparison import compare, comparison_to_csv
 from metallurgypy.core import Quantity
 from metallurgypy.data_io import ColumnMapping, import_table, read_table, write_rejected_csv
@@ -8,7 +6,7 @@ from metallurgypy.registry import get_model
 
 
 def test_csv_safe_neutralises_formulas_but_not_numbers():
-    assert csv_safe("=HYPERLINK(\"x\")") == "'=HYPERLINK(\"x\")"
+    assert csv_safe('=HYPERLINK("x")') == '\'=HYPERLINK("x")'
     assert csv_safe("@SUM(A1)") == "'@SUM(A1)"
     assert csv_safe("-cmd") == "'-cmd"
     assert csv_safe("-5") == "-5" and csv_safe("+1.5e3") == "+1.5e3"
@@ -17,7 +15,12 @@ def test_csv_safe_neutralises_formulas_but_not_numbers():
 
 def _res(rec=92):
     return get_model("mass_balance.recovery").run(
-        {"feed_mass": Quantity(1000, "t"), "feed_grade": Quantity(2.5, "%"), "recovery": Quantity(rec, "%")})
+        {
+            "feed_mass": Quantity(1000, "t"),
+            "feed_grade": Quantity(2.5, "%"),
+            "recovery": Quantity(rec, "%"),
+        }
+    )
 
 
 def test_comparison_csv_neutralises_scenario_names():

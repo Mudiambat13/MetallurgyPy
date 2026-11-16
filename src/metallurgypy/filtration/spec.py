@@ -13,11 +13,32 @@ register_class(
     description="Time and rate to filter a volume through an incompressible cake at constant pressure.",
     parameters=(
         param("viscosity", "Filtrate viscosity", "Dynamic viscosity of the filtrate.", "mPa.s"),
-        param("cake_resistance", "Specific cake resistance (alpha)", "Measured for this slurry.", "m/kg"),
-        param("solids_per_filtrate", "Solids per filtrate volume (c)", "Dry solids deposited per volume of filtrate.", "kg/m3", ("kg/m3", "g/L", "g/m3", "mg/L")),
-        param("medium_resistance", "Medium resistance (R_m)", "Resistance of the filter medium.", "1/m"),
+        param(
+            "cake_resistance",
+            "Specific cake resistance (alpha)",
+            "Measured for this slurry.",
+            "m/kg",
+        ),
+        param(
+            "solids_per_filtrate",
+            "Solids per filtrate volume (c)",
+            "Dry solids deposited per volume of filtrate.",
+            "kg/m3",
+            ("kg/m3", "g/L", "g/m3", "mg/L"),
+        ),
+        param(
+            "medium_resistance",
+            "Medium resistance (R_m)",
+            "Resistance of the filter medium.",
+            "1/m",
+        ),
         param("area", "Filter area", "Filtration area.", "m2"),
-        param("pressure_drop", "Pressure drop", "Constant pressure difference across cake and medium.", "kPa"),
+        param(
+            "pressure_drop",
+            "Pressure drop",
+            "Constant pressure difference across cake and medium.",
+            "kPa",
+        ),
         param("filtrate_volume", "Filtrate volume", "Volume of filtrate to collect.", "m3"),
     ),
     example={

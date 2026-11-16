@@ -9,8 +9,8 @@ from __future__ import annotations
 import csv
 import io
 import json
-import os
 import math
+import os
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -20,21 +20,21 @@ from typing import Any
 from metallurgypy.core.exceptions import MetallurgyPyError
 from metallurgypy.core.results import CalculationResult
 from metallurgypy.core.units import Quantity
-from metallurgypy.registry import ModelSpec, get_model
 from metallurgypy.records import _write_text, csv_safe
+from metallurgypy.registry import ModelSpec, get_model
 
 __all__ = [
-    "Table",
+    "BatchItem",
     "ColumnMapping",
+    "ImportReport",
     "ImportedRow",
     "RejectedRow",
-    "ImportReport",
-    "read_table",
+    "Table",
     "detect_column_types",
     "guess_unit",
     "import_table",
+    "read_table",
     "run_batch",
-    "BatchItem",
     "write_rejected_csv",
 ]
 
@@ -84,10 +84,14 @@ def read_table(
         return _read_json(source, encoding)
     if suffix in (".xlsx", ".xlsm"):
         return _read_xlsx(source, sheet)
-    raise DataImportError(f"Unsupported file type {suffix!r}. Use .csv, .tsv, .txt, .json or .xlsx.")
+    raise DataImportError(
+        f"Unsupported file type {suffix!r}. Use .csv, .tsv, .txt, .json or .xlsx."
+    )
 
 
-def _read_delimited(source: Path, delimiter: str | None, decimal: str | None, encoding: str) -> Table:
+def _read_delimited(
+    source: Path, delimiter: str | None, decimal: str | None, encoding: str
+) -> Table:
     try:
         text = source.read_text(encoding=encoding)
     except UnicodeDecodeError:
@@ -96,8 +100,12 @@ def _read_delimited(source: Path, delimiter: str | None, decimal: str | None, en
         ) from None
     if not text.strip():
         raise DataImportError(f"{source.name} is empty.")
-    delim = delimiter or ("\t" if source.suffix.lower() == ".tsv" else _sniff_delimiter(text[:4096]))
-    records = [r for r in csv.reader(io.StringIO(text), delimiter=delim) if any(c.strip() for c in r)]
+    delim = delimiter or (
+        "\t" if source.suffix.lower() == ".tsv" else _sniff_delimiter(text[:4096])
+    )
+    records = [
+        r for r in csv.reader(io.StringIO(text), delimiter=delim) if any(c.strip() for c in r)
+    ]
     header, *body = records
     columns = tuple(c.strip() for c in header)
     if len(set(columns)) != len(columns) or "" in columns:
@@ -125,7 +133,9 @@ def _read_json(source: Path, encoding: str) -> Table:
         columns = tuple(dict.fromkeys(k for r in data for k in r))
         rows = tuple(tuple(r.get(c) for c in columns) for r in data)
     else:
-        raise DataImportError("JSON must be a list of objects or {'columns': [...], 'rows': [[...]]}.")
+        raise DataImportError(
+            "JSON must be a list of objects or {'columns': [...], 'rows': [[...]]}."
+        )
     return Table(columns, rows, source.name, None, ".")
 
 
@@ -161,7 +171,7 @@ def _to_float(cell: Any, decimal: str) -> float:
     else:
         if cell is None:
             raise ValueError("empty")
-        text = str(cell).strip().replace(" ", "").replace(" ", "")
+        text = str(cell).strip().replace("\u00a0", "").replace(" ", "")
         if not text:
             raise ValueError("empty")
         if decimal == ",":
@@ -247,7 +257,9 @@ def import_table(table: Table, mappings: Sequence[ColumnMapping]) -> ImportRepor
     index = {name: i for i, name in enumerate(table.columns)}
     for m in mappings:
         if m.column not in index:
-            raise DataImportError(f"Column {m.column!r} is not in the file. Found: {', '.join(table.columns)}")
+            raise DataImportError(
+                f"Column {m.column!r} is not in the file. Found: {', '.join(table.columns)}"
+            )
         if m.kind == "number" and not m.unit:
             raise DataImportError(f"Column {m.column!r} is numeric: give its unit explicitly.")
         if m.kind not in ("number", "text"):
@@ -324,17 +336,21 @@ def run_batch(
     return tuple(items)
 
 
-def write_rejected_csv(path: str | os.PathLike[str], report: ImportReport, *, overwrite: bool = False) -> Path:
+def write_rejected_csv(
+    path: str | os.PathLike[str], report: ImportReport, *, overwrite: bool = False
+) -> Path:
     """Write the rejected rows and their reasons to a *new* file (the source is never touched)."""
     buffer = io.StringIO()
     w = csv.writer(buffer, lineterminator="\n")
     w.writerow(["row", "reasons", "raw_values"])
     for r in report.rejected:
-        w.writerow([
-            r.row_number,
-            csv_safe(" | ".join(r.reasons)),
-            csv_safe(" ; ".join("" if c is None else str(c) for c in r.raw)),
-        ])
+        w.writerow(
+            [
+                r.row_number,
+                csv_safe(" | ".join(r.reasons)),
+                csv_safe(" ; ".join("" if c is None else str(c) for c in r.raw)),
+            ]
+        )
     target = Path(path)
     _write_text(target, buffer.getvalue(), overwrite=overwrite)
     return target

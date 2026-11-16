@@ -41,13 +41,19 @@ class Measurement:
         if isinstance(self.uncertainty, bool) or not isinstance(self.uncertainty, (int, float)):
             raise InvalidParameterError("uncertainty must be a real number.")
         if not math.isfinite(self.uncertainty) or self.uncertainty < 0.0:
-            raise InvalidParameterError(f"uncertainty must be finite and >= 0, got {self.uncertainty!r}.")
+            raise InvalidParameterError(
+                f"uncertainty must be finite and >= 0, got {self.uncertainty!r}."
+            )
         if self.kind not in ("standard", "expanded", "rectangular", "triangular"):
-            raise InvalidParameterError(f"Unsupported uncertainty kind {self.kind!r}. Use: {_KIND_HELP}.")
+            raise InvalidParameterError(
+                f"Unsupported uncertainty kind {self.kind!r}. Use: {_KIND_HELP}."
+            )
         if self.kind == "expanded":
             k = self.coverage_factor
             if k is None or not math.isfinite(k) or k <= 0.0:
-                raise InvalidParameterError("An expanded uncertainty needs a coverage_factor k > 0.")
+                raise InvalidParameterError(
+                    "An expanded uncertainty needs a coverage_factor k > 0."
+                )
         elif self.coverage_factor is not None:
             raise InvalidParameterError("coverage_factor only applies to kind='expanded'.")
 
@@ -84,10 +90,14 @@ class Measurement:
     ) -> Measurement:
         """Type A evaluation: mean of ``values`` and standard uncertainty of the mean, s / sqrt(n)."""
         if len(values) < 2:
-            raise InvalidParameterError("At least two replicates are needed for a Type A uncertainty.")
+            raise InvalidParameterError(
+                "At least two replicates are needed for a Type A uncertainty."
+            )
         data = [Quantity(v, unit).value for v in values]
         mean = statistics.fmean(data)
-        return cls(mean, unit, statistics.stdev(data) / math.sqrt(len(data)), "standard", method=method)
+        return cls(
+            mean, unit, statistics.stdev(data) / math.sqrt(len(data)), "standard", method=method
+        )
 
     def to_dict(self) -> dict[str, object]:
         return {

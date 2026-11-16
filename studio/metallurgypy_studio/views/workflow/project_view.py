@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFileDialog,
@@ -10,7 +11,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QListWidget,
     QListWidgetItem,
-    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QTableWidget,
@@ -18,7 +18,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import Qt, Signal
 
 from metallurgypy_studio.viewmodels.workflow_viewmodels import ProjectViewModel
 
@@ -90,7 +89,9 @@ class ProjectView(QWidget):
         return [int(i.data(Qt.ItemDataRole.UserRole)) for i in self.list.selectedItems()]
 
     def _new(self) -> None:
-        folder = QFileDialog.getExistingDirectory(self, "Choose an empty folder for the new project")
+        folder = QFileDialog.getExistingDirectory(
+            self, "Choose an empty folder for the new project"
+        )
         if not folder:
             return
         name, ok = QInputDialog.getText(self, "New project", "Project name:")
@@ -121,7 +122,9 @@ class ProjectView(QWidget):
         self.vm.compare(ids, ids[0] if ids else None)
 
     def _export_comparison(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, "Export comparison", "comparison.csv", "CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export comparison", "comparison.csv", "CSV (*.csv)"
+        )
         if path:
             self.vm.export_comparison(path)
 
@@ -132,10 +135,14 @@ class ProjectView(QWidget):
         if not path:
             return
         fmt = "pdf" if path.lower().endswith(".pdf") or "PDF" in selected else "html"
-        self.vm.export_report(self._selected_ids() or [e.id for e in self.vm.entries()], path, fmt=fmt)
+        self.vm.export_report(
+            self._selected_ids() or [e.id for e in self.vm.entries()], path, fmt=fmt
+        )
 
     def _archive(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, "Export project archive", "project.zip", "ZIP (*.zip)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export project archive", "project.zip", "ZIP (*.zip)"
+        )
         if path:
             self.vm.export_archive(path)
 
@@ -162,7 +169,11 @@ class ProjectView(QWidget):
         self.table.setRowCount(len(cmp.rows))
         for r, row in enumerate(cmp.rows):
             cells = [f"{row.section}: {row.name}", row.unit]
-            cells += ["" if row.values[s] is None else f"{row.values[s]:.6g}" for s in cmp.scenarios]
-            cells += ["" if row.difference[s] is None else f"{row.difference[s]:+.6g}" for s in others]
+            cells += [
+                "" if row.values[s] is None else f"{row.values[s]:.6g}" for s in cmp.scenarios
+            ]
+            cells += [
+                "" if row.difference[s] is None else f"{row.difference[s]:+.6g}" for s in others
+            ]
             for c, text in enumerate(cells):
                 self.table.setItem(r, c, QTableWidgetItem(text))

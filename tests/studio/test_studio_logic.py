@@ -55,11 +55,15 @@ def test_studio_result_equals_core_result_exactly(service):
     )
     assert outcome.ok
     direct = MassBalance(1000, 0.025, 0.92).calculate()
-    assert outcome.result.metal_recovered.value == pytest.approx(direct.metal_recovered.value, rel=1e-14)
+    assert outcome.result.metal_recovered.value == pytest.approx(
+        direct.metal_recovered.value, rel=1e-14
+    )
     assert outcome.result.metal_remaining.value == pytest.approx(2.0, rel=1e-14)
 
 
-@pytest.mark.parametrize(("text", "expected"), [("2.5", 2.5), ("2,5", 2.5), (" 1 000 ", 1000.0), ("1e3", 1000.0)])
+@pytest.mark.parametrize(
+    ("text", "expected"), [("2.5", 2.5), ("2,5", 2.5), (" 1 000 ", 1000.0), ("1e3", 1000.0)]
+)
 def test_parse_number(text, expected):
     assert parse_number(text) == expected
 
@@ -129,8 +133,14 @@ def test_module_overview_covers_all_nine_modules_and_marks_availability(service)
     assert len(overview) == 9
     available = {o.info.key for o in overview if o.available}
     assert available == {
-        "mass_balance", "reagents", "electrowinning", "flotation", "filtration",
-        "hydrometallurgy", "solvent_extraction", "thermodynamics",
+        "mass_balance",
+        "reagents",
+        "electrowinning",
+        "flotation",
+        "filtration",
+        "hydrometallurgy",
+        "solvent_extraction",
+        "thermodynamics",
     }
     assert {o.info.key for o in overview if not o.available} == {"statistics"}
 
@@ -153,7 +163,12 @@ def test_workspace_flow_example_calculate_and_display_rows(vm):
 
 
 def test_display_precision_never_changes_stored_values(vm):
-    _fill(vm, feed_mass=("1", "t"), feed_grade=("33.333333333333", "%"), recovery=("14.285714285714", "%"))
+    _fill(
+        vm,
+        feed_mass=("1", "t"),
+        feed_grade=("33.333333333333", "%"),
+        recovery=("14.285714285714", "%"),
+    )
     vm.calculate()
     exact = vm.result.metal_feed.value
     vm._state.settings.display_digits = 3
@@ -239,7 +254,9 @@ def test_settings_round_trip_and_tolerant_loading(tmp_path):
     s.add_recent("a")
     s.save(path)
     assert AppSettings.load(path) == s
-    path.write_text('{"theme": "neon", "display_digits": 99, "recent_files": [1, "ok"]}', encoding="utf-8")
+    path.write_text(
+        '{"theme": "neon", "display_digits": 99, "recent_files": [1, "ok"]}', encoding="utf-8"
+    )
     loaded = AppSettings.load(path)
     assert loaded.theme == "light" and loaded.display_digits == 6 and loaded.recent_files == ["ok"]
     path.write_text("garbage", encoding="utf-8")
@@ -278,7 +295,9 @@ def test_format_number(value, digits, expected):
 
 def _run_python(code: str) -> subprocess.CompletedProcess[str]:
     env = {"PYTHONPATH": f"{ROOT / 'src'}:{ROOT / 'studio'}", "PATH": "/usr/bin:/bin"}
-    return subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, check=False)
+    return subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, env=env, check=False
+    )
 
 
 def test_core_imports_without_gui_or_plotting_libraries():
@@ -308,10 +327,14 @@ _UNC_FIELDS = {
 
 
 def test_run_with_uncertainty_propagates_and_keeps_nominal(service):
-    plain = service.run("mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()})
+    plain = service.run(
+        "mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()}
+    )
     outcome = service.run("mass_balance.recovery", _UNC_FIELDS)
     assert outcome.ok and outcome.uncertain is not None
-    assert outcome.result.metal_recovered.value == pytest.approx(plain.result.metal_recovered.value, rel=1e-14)
+    assert outcome.result.metal_recovered.value == pytest.approx(
+        plain.result.metal_recovered.value, rel=1e-14
+    )
     u = outcome.uncertain.outputs["metal_recovered"].standard_uncertainty
     # metal = m * g * R: relative variances add (first-order)
     expected_rel = ((5 / 1000) ** 2 + (0.05 / 2.5) ** 2) ** 0.5
@@ -369,7 +392,9 @@ def test_reopening_in_viewmodel_restores_uncertainty_fields(vm, service, tmp_pat
 
 
 def test_record_without_uncertainty_still_loads(service, tmp_path):
-    outcome = service.run("mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()})
+    outcome = service.run(
+        "mass_balance.recovery", {k: FieldInput(v.text, v.unit) for k, v in _UNC_FIELDS.items()}
+    )
     path = service.save(tmp_path / "plain.mpy.json", outcome.result)
     opened = service.open(path)
     assert opened.record.uncertainty is None and opened.outcome.uncertain is None

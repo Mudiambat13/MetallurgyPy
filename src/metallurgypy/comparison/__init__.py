@@ -58,15 +58,21 @@ def compare(
     names = tuple(scenarios)
     base = baseline if baseline is not None else names[0]
     if base not in scenarios:
-        raise InvalidParameterError(f"Baseline {base!r} is not one of the scenarios: {', '.join(names)}.")
+        raise InvalidParameterError(
+            f"Baseline {base!r} is not one of the scenarios: {', '.join(names)}."
+        )
 
     warnings: list[str] = []
     models = {r.provenance.model_id for r in scenarios.values()}
     if len(models) > 1:
-        warnings.append("Scenarios come from different models: only quantities with the same name are compared.")
+        warnings.append(
+            "Scenarios come from different models: only quantities with the same name are compared."
+        )
     modes = {r.provenance.calculation_mode for r in scenarios.values()}
     if len(modes) > 1:
-        warnings.append("Scenarios use different calculation modes: " + ", ".join(sorted(modes)) + ".")
+        warnings.append(
+            "Scenarios use different calculation modes: " + ", ".join(sorted(modes)) + "."
+        )
 
     rows: list[ComparisonRow] = []
     for section in ("input", "output"):
@@ -107,7 +113,11 @@ def compare(
                     continue
                 diff[sname] = cur - base_value
                 rel[sname] = None if base_value == 0.0 else (cur - base_value) / abs(base_value)
-            if section == "input" and len({v for v in values.values() if v is not None}) <= 1 and None not in values.values():
+            if (
+                section == "input"
+                and len({v for v in values.values() if v is not None}) <= 1
+                and None not in values.values()
+            ):
                 continue  # identical inputs are not interesting in the comparison
             rows.append(ComparisonRow(section, key, unit, values, diff, rel, tuple(notes)))
     return Comparison(base, names, tuple(rows), tuple(warnings))

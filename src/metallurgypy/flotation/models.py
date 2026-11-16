@@ -52,7 +52,13 @@ class FlotationKinetics(BaseModel):
         tolerances: Tolerances = DEFAULT_TOLERANCES,
     ) -> None:
         super().__init__(mode=mode, tolerances=tolerances)
-        r_inf = qty("ultimate_recovery", ultimate_recovery, unit="fraction", allowed=("fraction", "%"), fraction=True)
+        r_inf = qty(
+            "ultimate_recovery",
+            ultimate_recovery,
+            unit="fraction",
+            allowed=("fraction", "%"),
+            fraction=True,
+        )
         if r_inf.to("fraction").value == 0.0:
             raise InvalidParameterError("ultimate_recovery must be strictly positive.")
         self._inputs = {
@@ -81,12 +87,21 @@ class FlotationKinetics(BaseModel):
         )
         warnings = []
         if k * t < 0.05:
-            warnings.append("k * t is very small: the recovery is still in the initial linear part of the curve.")
+            warnings.append(
+                "k * t is very small: the recovery is still in the initial linear part of the curve."
+            )
         return self._result(
             [
                 out("recovery", "Recovery at time t", recovery, "fraction"),
-                out("remaining_recoverable", "Recoverable fraction not yet recovered", r_inf - recovery, "fraction"),
-                out("time_95", "Time to reach 95 % of ultimate recovery", math.log(20.0) / k, "min"),
+                out(
+                    "remaining_recoverable",
+                    "Recoverable fraction not yet recovered",
+                    r_inf - recovery,
+                    "fraction",
+                ),
+                out(
+                    "time_95", "Time to reach 95 % of ultimate recovery", math.log(20.0) / k, "min"
+                ),
             ],
             chart=chart,
             warnings=warnings,

@@ -32,9 +32,7 @@ from metallurgypy.core.units import (
 from metallurgypy.core.validation import DEFAULT_TOLERANCES, Tolerances
 
 _SUPPORTED_MODES = (CalculationMode.STANDARD, CalculationMode.HIGH_PRECISION)
-_EXACT_METHOD = (
-    "Exact rational arithmetic (fractions.Fraction) on the float64 inputs; each output is rounded once to float64"
-)
+_EXACT_METHOD = "Exact rational arithmetic (fractions.Fraction) on the float64 inputs; each output is rounded once to float64"
 
 
 def _mass(name: str, raw: Quantity | float) -> Quantity:
@@ -226,7 +224,9 @@ class TwoProductResult(CalculationResult):
             OutputItem("metal_feed", "Metal in feed", self.metal_feed),
             OutputItem("metal_concentrate", "Metal in concentrate", self.metal_concentrate),
             OutputItem("metal_tailings", "Metal in tailings", self.metal_tailings),
-            OutputItem("mass_closure_residual", "Closure residual (mass)", self.mass_closure_residual),
+            OutputItem(
+                "mass_closure_residual", "Closure residual (mass)", self.mass_closure_residual
+            ),
             OutputItem(
                 "metal_closure_residual", "Closure residual (metal)", self.metal_closure_residual
             ),
@@ -283,11 +283,15 @@ class TwoProductBalance:
         mode: CalculationMode | str = CalculationMode.STANDARD,
         tolerances: Tolerances = DEFAULT_TOLERANCES,
     ) -> None:
-        self._mode = resolve_mode(mode, (CalculationMode.STANDARD,))  # high_precision: MassBalance only
+        self._mode = resolve_mode(
+            mode, (CalculationMode.STANDARD,)
+        )  # high_precision: MassBalance only
         self._tol = tolerances
         self.feed_mass = _mass("feed_mass", feed_mass)
         self.feed_grade = _fraction("feed_grade", feed_grade, allowed=GRADE_UNITS)
-        self.concentrate_grade = _fraction("concentrate_grade", concentrate_grade, allowed=GRADE_UNITS)
+        self.concentrate_grade = _fraction(
+            "concentrate_grade", concentrate_grade, allowed=GRADE_UNITS
+        )
         self.tailings_grade = _fraction("tailings_grade", tailings_grade, allowed=GRADE_UNITS)
 
     def calculate(self) -> TwoProductResult:
