@@ -7,6 +7,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = [
+    "README.md",
     "docs/tutorials/uncertainty.md",
     "docs/tutorials/first_mass_balance.md",
     "docs/guides/workflows.md",

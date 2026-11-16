@@ -18,7 +18,7 @@ Contributions are welcome from engineers, researchers, teachers and developers.
 pip install -e ".[dev]"
 ```
 
-Quality tools: Pytest, Hypothesis, Ruff, MyPy. Core tests and GUI tests run as separate jobs in CI.
+Quality tools: pytest, ruff (lint and format) and mypy (strict). Core tests and GUI tests run as separate jobs in CI.
 
 ## Adding a model
 
