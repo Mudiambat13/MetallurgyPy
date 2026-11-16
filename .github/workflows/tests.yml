@@ -114,6 +114,17 @@ jobs:
         run: metallurgypy-studio --check
       - name: GUI and Studio logic tests
         run: pytest -q tests/gui tests/studio
+      - name: Take pictures of Studio (does not fail the build)
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: python tools/take_studio_screenshots.py studio-screenshots
+      - name: Upload the pictures of Studio
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-screenshots
+          path: studio-screenshots
+          if-no-files-found: ignore
 
   packaging:
     name: Build and install the wheel

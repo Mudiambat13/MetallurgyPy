@@ -2,6 +2,8 @@
 
 *Engineering Metallurgy with Python.*
 
+🇫🇷 **[Documentation en français](fr/index.md)**
+
 MetallurgyPy is an open-source scientific library for metallurgical process calculations, paired with a desktop application for people who prefer forms and charts to scripts.
 
 !!! warning "Project status: early development (0.2.0.dev0)"

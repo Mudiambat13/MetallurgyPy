@@ -5,10 +5,9 @@ MetallurgyPy is built in layers. Each layer depends only on the ones below it.
 ```mermaid
 flowchart TB
     studio["MetallurgyPy Studio<br/>PySide6: forms, tables, charts"]
-    services["Application services<br/>use cases, orchestration, reports"]
-    core["MetallurgyPy Core<br/>mass balance, hydrometallurgy, SX, EW, ..."]
-    found["Scientific foundations<br/>NumPy, SciPy, Pint, SymPy, Pandas, uncertainties"]
-    studio --> services --> core --> found
+    services["Application services (no Qt)<br/>use cases, projects, reports"]
+    core["MetallurgyPy Core<br/>units, models, precision, records"]
+    studio --> services --> core
 ```
 
 ## Core principle
@@ -19,28 +18,21 @@ The `metallurgypy` package installs and runs **without PySide6**. Studio is an o
 
 ```text
 src/metallurgypy/
-├── core/          units, constants, exceptions, validation, results, provenance
-├── precision/     numerical modes, uncertainty, measurements, tolerances, sensitivity
-├── mass_balance/
-├── hydrometallurgy/
-├── solvent_extraction/
-├── electrowinning/
-├── flotation/
-├── filtration/
-├── reagents/
-├── thermodynamics/
-├── statistics/
-└── visualization/
+├── core/            units, constants, exceptions, validation, results, provenance
+├── precision/       uncertainty, sensitivity, significant figures, tolerances
+├── mass_balance/  reagents/  electrowinning/  flotation/  filtration/
+├── hydrometallurgy/  solvent_extraction/  thermodynamics/  statistics/
+├── data_io/  comparison/  reports/  projects/  visualization/
+├── registry.py      model registry
+└── records.py       save, reopen, verify, export
 
 studio/metallurgypy_studio/
-├── views/  viewmodels/  services/  widgets/  workers/  resources/
+└── views/  viewmodels/  services/  widgets/  workers/  resources/
 ```
-
-The tree is a starting proposal. Folders are created when they hold real code, not in advance.
 
 ## Core responsibilities
 
-- unit handling and conversion (Pint)
+- unit handling and conversion (an internal engine with exact ratios and dimensions; no third-party package)
 - input validation
 - documented physical constants
 - custom exceptions
@@ -55,10 +47,11 @@ MetallurgyPyError
 ├── DimensionError
 ├── CalculationError
 │   └── ConvergenceError
-└── ModelDomainError
+├── ModelDomainError
+└── RecordFormatError
 ```
 
-The tree above shows the proposed hierarchy; the exact inheritance is confirmed in Phase 1.
+`InvalidParameterError` is also a `ValueError`. `DataImportError` and `ProjectError` are added by the import and project modules.
 
 ## Studio architecture
 
@@ -76,21 +69,17 @@ Studio follows Model-View-ViewModel (or an equivalent Qt-adapted separation):
 
 ## Dependencies
 
-| Tool | Role |
-|---|---|
-| NumPy, SciPy | numerical computing |
-| Pandas | tabular data |
-| SymPy | symbolic computation |
-| Pint | units and dimensions |
-| Pydantic | data validation and schemas |
-| uncertainties | uncertainty propagation (optional extra) |
-| PySide6, pyqtgraph, Matplotlib | Studio and plotting (optional extras) |
-| openpyxl | Excel import/export |
-| SQLite | project metadata and history |
-| Pytest, Hypothesis, Ruff, MyPy | quality tooling |
-| MkDocs | this documentation |
+The Core has **no required dependency**: it uses the Python standard library only.
 
-Dependency versions are checked for compatibility before being pinned. A dependency is added only with a technical justification.
+| Package | Role | Extra |
+|---|---|---|
+| matplotlib | Charts, PNG/SVG export, PDF reports | `visualization` |
+| openpyxl | Reading `.xlsx` files | `excel` |
+| PySide6, pyqtgraph | Studio and interactive charts | `gui` |
+| pytest, mypy, ruff, build, twine | Quality tooling and packaging | `dev` |
+| MkDocs, Material | This documentation | `docs` |
+
+SQLite (standard library) stores the project history. A dependency is added only with a technical justification.
 
 ## Out of scope
 

@@ -8,6 +8,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = [
     "README.md",
+    "README.fr.md",
+    "docs/fr/demarrage.md",
+    "docs/fr/precision.md",
+    "docs/fr/concepts.md",
+    "docs/fr/flux.md",
     "docs/tutorials/uncertainty.md",
     "docs/tutorials/first_mass_balance.md",
     "docs/guides/workflows.md",

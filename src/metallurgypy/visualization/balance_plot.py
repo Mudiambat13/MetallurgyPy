@@ -28,6 +28,8 @@ def _figure_class() -> Any:
 def build_figure(chart: ChartData) -> Any:
     """Return a Matplotlib ``Figure`` (no pyplot, no global state, no display needed)."""
     figure = _figure_class()(figsize=(6.4, 4.2), layout="constrained")
+    # Keep a strip at the bottom for the source line, which constrained layout cannot see.
+    figure.get_layout_engine().set(rect=(0.0, 0.05, 1.0, 0.95))
     axes = figure.subplots()
     if chart.kind == "line":
         axes.plot(chart.x, chart.values, color="#4a6b8a", linewidth=2)

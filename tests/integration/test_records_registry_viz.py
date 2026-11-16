@@ -183,3 +183,27 @@ def test_chart_export_png_and_svg(tmp_path, result):
         save_chart(chart, tmp_path / "c.pdf")
     with pytest.raises(FileExistsError):
         save_chart(chart, png)
+
+
+def test_chart_source_line_does_not_overlap_the_axes():
+    pytest.importorskip("matplotlib")
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+    from metallurgypy.registry import get_model
+    from metallurgypy.visualization import build_figure
+
+    for model_id in ("mass_balance.recovery", "hydrometallurgy.leach_kinetics_first_order"):
+        spec = get_model(model_id)
+        chart = spec.run(spec.example).chart_data()
+        assert chart is not None
+        figure = build_figure(chart)
+        canvas = FigureCanvasAgg(figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        source = next(t for t in figure.texts if t.get_text() == chart.source)
+        source_box = source.get_window_extent(renderer)
+        axes = figure.axes[0]
+        labels = [t for t in axes.get_xticklabels() if t.get_text()] + [axes.xaxis.label]
+        for label in labels:
+            if label.get_text():
+                assert not source_box.overlaps(label.get_window_extent(renderer)), model_id

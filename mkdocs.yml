@@ -90,6 +90,18 @@ nav:
       - Deploying the docs: project/deploy_docs.md
       - Contributing: contributing.md
       - FAQ: faq.md
+  - Français:
+      - Accueil: fr/index.md
+      - Installation: fr/installation.md
+      - Démarrage rapide: fr/demarrage.md
+      - Concepts: fr/concepts.md
+      - Précision et incertitude: fr/precision.md
+      - Méthodes scientifiques: fr/modules.md
+      - Studio: fr/studio.md
+      - Données, comparaison, rapports, projets: fr/flux.md
+      - Audit scientifique et sécurité: fr/audit.md
+      - FAQ: fr/faq.md
+      - Contribuer: fr/contribuer.md
 
 markdown_extensions:
   - admonition

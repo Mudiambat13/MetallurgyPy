@@ -19,8 +19,10 @@ This shows that the code implements the stated equations correctly. It does **no
 - **No independent scientific review.** The equations are standard textbook relations written from the author's knowledge. A domain expert should check each page. Bibliographic references have **not** been added or checked; none are invented here.
 - **No comparison with another software package** (for example a process simulator or a thermodynamic database).
 - **Studio has not been run** on a real display by the author of this code. Its logic is tested without Qt (view models, services); the widgets are exercised only by the CI job.
-- **CI has not been run.** The workflows exist but were not executed against GitHub.
-- **Linting.** `ruff` was not available where this was written; `mypy --strict` passes on the sources.
+- **The GitHub Actions workflows were not run by the author.** They were validated locally (YAML syntax, each step replayed by hand, Python 3.11 to 3.13), but not executed on GitHub.
+- **Python 3.10** is in the CI matrix; its syntax is checked, but the tests were not run on it locally.
+
+`ruff` (lint and format), `mypy --strict` and the strict documentation build pass.
 
 ## Model-by-model status
 
