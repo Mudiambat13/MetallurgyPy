@@ -37,9 +37,18 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
     app.setApplicationName(APP_NAME)
+    app.setQuitOnLastWindowClosed(False)
     config = settings_path()
     window = MainWindow(app, AppSettings.load(config), config_file=config)
     if args.check:
+        # Ensure Qt shuts down in a controlled way in CI. Leaving the window and
+        # application alive until interpreter shutdown can trigger a segfault on
+        # headless runners when the QPA subsystem is torn down.
+        app.processEvents()
+        window.close()
+        window.deleteLater()
+        app.quit()
+        app.processEvents()
         print(f"{APP_NAME} {__version__}: main window created.")
         return 0
     window.show()
