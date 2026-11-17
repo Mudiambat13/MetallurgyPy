@@ -153,7 +153,7 @@ def render_page(title: str, module_name: str) -> str:
             # The signature of an Enum differs between Python versions: list the members instead.
             lines += [f"## `{name}`", "", "```python", f"class {name}(enum.Enum)", "```", ""]
             doc = _clean_doc(obj.__doc__)
-            if doc:
+            if doc and doc != "An enumeration.":  # Python 3.10 adds this text to every Enum
                 lines += [doc, ""]
             lines += [f"- `{name}.{m.name}` = `{m.value!r}`" for m in obj] + [""]
         elif inspect.isclass(obj):

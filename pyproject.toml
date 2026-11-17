@@ -65,7 +65,7 @@ mypy_path = ["src", "studio"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["PySide6.*", "pyqtgraph.*", "matplotlib.*", "openpyxl.*"]
+module = ["PySide6.*", "shiboken6.*", "pyqtgraph.*", "matplotlib.*", "openpyxl.*"]
 ignore_missing_imports = true
 
 # Qt base classes and slot decorators are typed by PySide6 itself; when it is not

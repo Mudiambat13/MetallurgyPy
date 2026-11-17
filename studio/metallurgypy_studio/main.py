@@ -6,6 +6,7 @@ import argparse
 import logging
 import sys
 from collections.abc import Sequence
+from typing import Any
 
 from metallurgypy_studio import APP_NAME, __version__
 
@@ -37,19 +38,30 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
     app.setApplicationName(APP_NAME)
-    app.setQuitOnLastWindowClosed(False)
     config = settings_path()
     window = MainWindow(app, AppSettings.load(config), config_file=config)
-    if args.check:
-        # Ensure Qt shuts down in a controlled way in CI. Leaving the window and
-        # application alive until interpreter shutdown can trigger a segfault on
-        # headless runners when the QPA subsystem is torn down.
-        app.processEvents()
-        window.close()
-        window.deleteLater()
-        app.quit()
-        app.processEvents()
-        print(f"{APP_NAME} {__version__}: main window created.")
-        return 0
-    window.show()
-    return int(app.exec())
+    try:
+        if args.check:
+            app.processEvents()
+            print(f"{APP_NAME} {__version__}: main window created.")
+            return 0
+        window.show()
+        return int(app.exec())
+    finally:
+        _destroy_window(window, app)
+
+
+def _destroy_window(window: Any, app: Any) -> None:
+    """Delete the window while the QApplication still exists.
+
+    Qt requires widgets to be destroyed before their QApplication. Python releases local
+    variables in the order they were created, so without this step the application would be
+    destroyed first, which crashes on some platforms (typically headless CI) at interpreter exit.
+    """
+    import shiboken6
+
+    window.close()
+    app.processEvents()
+    if shiboken6.isValid(window):
+        shiboken6.delete(window)
+    app.processEvents()
