@@ -1,0 +1,164 @@
+From 213d2ea2dc10bd355c5ff0b8242c87bf0c3de31a Mon Sep 17 00:00:00 2001
+From: Jonathan Mudiambat <103556538+Mudiambat13@users.noreply.github.com>
+Date: Tue, 17 Nov 2026 02:26:37 +0200
+Subject: [PATCH] Fix Python 3.10 API page and make Qt shutdown deterministic
+ in GUI tests
+
+---
+ pyproject.toml                     |  2 +-
+ studio/metallurgypy_studio/main.py | 40 +++++++++++++++++++-----------
+ tests/gui/test_studio_gui.py       | 22 +++++++---------
+ tools/gen_api_reference.py         |  2 +-
+ 4 files changed, 37 insertions(+), 29 deletions(-)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index 22f0f82..6dbd760 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -65,7 +65,7 @@ mypy_path = ["src", "studio"]
+ explicit_package_bases = true
+ 
+ [[tool.mypy.overrides]]
+-module = ["PySide6.*", "pyqtgraph.*", "matplotlib.*", "openpyxl.*"]
++module = ["PySide6.*", "shiboken6.*", "pyqtgraph.*", "matplotlib.*", "openpyxl.*"]
+ ignore_missing_imports = true
+ 
+ # Qt base classes and slot decorators are typed by PySide6 itself; when it is not
+diff --git a/studio/metallurgypy_studio/main.py b/studio/metallurgypy_studio/main.py
+index 8f4ffd0..2fa03eb 100644
+--- a/studio/metallurgypy_studio/main.py
++++ b/studio/metallurgypy_studio/main.py
+@@ -6,6 +6,7 @@ import argparse
+ import logging
+ import sys
+ from collections.abc import Sequence
++from typing import Any
+ 
+ from metallurgypy_studio import APP_NAME, __version__
+ 
+@@ -37,19 +38,30 @@ def main(argv: Sequence[str] | None = None) -> int:
+ 
+     app = QApplication.instance() or QApplication(sys.argv[:1])
+     app.setApplicationName(APP_NAME)
+-    app.setQuitOnLastWindowClosed(False)
+     config = settings_path()
+     window = MainWindow(app, AppSettings.load(config), config_file=config)
+-    if args.check:
+-        # Ensure Qt shuts down in a controlled way in CI. Leaving the window and
+-        # application alive until interpreter shutdown can trigger a segfault on
+-        # headless runners when the QPA subsystem is torn down.
+-        app.processEvents()
+-        window.close()
+-        window.deleteLater()
+-        app.quit()
+-        app.processEvents()
+-        print(f"{APP_NAME} {__version__}: main window created.")
+-        return 0
+-    window.show()
+-    return int(app.exec())
++    try:
++        if args.check:
++            app.processEvents()
++            print(f"{APP_NAME} {__version__}: main window created.")
++            return 0
++        window.show()
++        return int(app.exec())
++    finally:
++        _destroy_window(window, app)
++
++
++def _destroy_window(window: Any, app: Any) -> None:
++    """Delete the window while the QApplication still exists.
++
++    Qt requires widgets to be destroyed before their QApplication. Python releases local
++    variables in the order they were created, so without this step the application would be
++    destroyed first, which crashes on some platforms (typically headless CI) at interpreter exit.
++    """
++    import shiboken6
++
++    window.close()
++    app.processEvents()
++    if shiboken6.isValid(window):
++        shiboken6.delete(window)
++    app.processEvents()
+diff --git a/tests/gui/test_studio_gui.py b/tests/gui/test_studio_gui.py
+index 20ce263..2b441ac 100644
+--- a/tests/gui/test_studio_gui.py
++++ b/tests/gui/test_studio_gui.py
+@@ -12,6 +12,7 @@ pytest.importorskip("PySide6")
+ pytest.importorskip("pyqtgraph")
+ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+ 
++import shiboken6
+ from PySide6.QtWidgets import QApplication
+ 
+ from metallurgypy_studio.app import MainWindow
+@@ -21,17 +22,10 @@ from metallurgypy_studio.viewmodels.app_state import AppSettings
+ pytestmark = pytest.mark.gui
+ 
+ 
+-@pytest.fixture(scope="module")
++@pytest.fixture(scope="session")
+ def qapp():
+-    app = QApplication.instance() or QApplication([])
+-    app.setQuitOnLastWindowClosed(False)
+-    yield app
+-    app.closeAllWindows()
+-    for widget in app.topLevelWidgets():
+-        widget.deleteLater()
+-    app.processEvents()
+-    app.quit()
+-    app.processEvents()
++    """One QApplication for the whole session, never destroyed before the interpreter exits."""
++    return QApplication.instance() or QApplication([])
+ 
+ 
+ @pytest.fixture
+@@ -39,11 +33,12 @@ def window(qapp):
+     win = MainWindow(qapp, AppSettings())
+     yield win
+     win.close()
+-    win.deleteLater()
++    if shiboken6.isValid(win):
++        shiboken6.delete(win)  # delete now, while the QApplication exists
+     qapp.processEvents()
+ 
+ 
+-def test_entry_point_builds_the_window():
++def test_entry_point_builds_the_window(qapp):
+     assert main(["--check"]) == 0
+ 
+ 
+@@ -86,6 +81,7 @@ def test_form_is_rebuilt_for_another_model(window):
+     assert set(window.workspace._edits) == {
+         "feed_mass",
+         "feed_grade",
++        "concentrate_grade",
+         "tailings_grade",
+     }
+ 
+@@ -123,7 +119,7 @@ def test_import_view_lists_columns_and_reports_rows(window, tmp_path):
+         view.columns.cellWidget(r, 2).setText(name)
+     view._validate()
+     assert "4 valid row(s), 1 rejected" in view.summary.text()
+-    assert "1" in view.results.rowCount()  # placeholder to keep file in sync with repo state
++    assert view.results.rowCount() == 1  # the one rejected row
+ 
+ 
+ def test_project_view_add_and_compare(window, tmp_path):
+diff --git a/tools/gen_api_reference.py b/tools/gen_api_reference.py
+index 5f462a5..fd9534e 100644
+--- a/tools/gen_api_reference.py
++++ b/tools/gen_api_reference.py
+@@ -153,7 +153,7 @@ def render_page(title: str, module_name: str) -> str:
+             # The signature of an Enum differs between Python versions: list the members instead.
+             lines += [f"## `{name}`", "", "```python", f"class {name}(enum.Enum)", "```", ""]
+             doc = _clean_doc(obj.__doc__)
+-            if doc:
++            if doc and doc != "An enumeration.":  # Python 3.10 adds this text to every Enum
+                 lines += [doc, ""]
+             lines += [f"- `{name}.{m.name}` = `{m.value!r}`" for m in obj] + [""]
+         elif inspect.isclass(obj):
+-- 
+2.43.0
+
